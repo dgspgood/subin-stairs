@@ -1,0 +1,2845 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+  <title>v2 - 수빈이의 무한의계단</title>
+  <style>
+    :root{--bg:#14142c;--panel:rgba(30,25,58,.58);--line:rgba(255,255,255,.16);--text:#f2f0ff;--muted:rgba(255,255,255,.82);--pink1:#ff98dc;--pink2:#8cecff;--cardGlow:rgba(255,170,226,.20)}
+    html,body{margin:0;height:100%;background:radial-gradient(1200px 700px at 50% 0%, #5f67b5 0%, #31325f 40%, var(--bg) 75%, #101223 100%);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans KR",sans-serif;overflow:hidden;touch-action:manipulation}
+    #wrap{height:100%;display:flex;align-items:center;justify-content:center;padding:12px}
+    #box{width:min(1120px,96vw);height:min(820px,96vh);border-radius:18px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));box-shadow:0 18px 70px rgba(15,10,35,.45);position:relative;overflow:hidden}
+    canvas#c{width:100%;height:100%;display:block}
+    .hud{position:absolute;left:14px;right:14px;top:12px;display:flex;gap:10px;align-items:center;justify-content:space-between;pointer-events:none}
+    .pill{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:999px;background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(6px);font-weight:900}
+    .pill span{color:var(--muted);font-weight:900}
+    .mini{padding:10px 12px;border-radius:999px;background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(6px);font-weight:950}
+    .btnTiny{pointer-events:auto;padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:var(--text);font-weight:950;cursor:pointer}
+    .btnTiny:hover{filter:brightness(1.08)}
+    .miniRow{display:flex;gap:10px;align-items:center;pointer-events:none}
+    .miniRow .btnTiny{pointer-events:auto}
+    #timeWrap{position:absolute;left:14px;right:14px;top:56px;background:var(--panel);border:1px solid var(--line);border-radius:999px;height:14px;overflow:hidden;pointer-events:none}
+    #timeFill{height:100%;width:100%;background:linear-gradient(90deg,rgba(124,255,107,.85),rgba(110,231,255,.75))}
+    .overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(900px 500px at 50% 30%, rgba(164,156,255,0.22), rgba(22,18,40,0.66));backdrop-filter:blur(6px);padding:18px}
+    .card{width:min(960px,94vw);background:linear-gradient(180deg,rgba(18,24,56,0.92),rgba(10,14,34,0.88));border:1px solid rgba(255,255,255,0.14);border-radius:24px;box-shadow:0 20px 70px rgba(0,0,0,0.58), inset 0 1px 0 rgba(255,255,255,0.08);padding:20px}
+    .title{font-size:clamp(24px,3.2vw,32px);font-weight:1000;letter-spacing:-0.7px;line-height:1.18;margin:2px 0 8px;max-width:100%;white-space:normal;word-break:keep-all;overflow-wrap:anywhere;text-wrap:balance;background:linear-gradient(90deg,#fff,#ffd2f1 45%,#9eefff);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .sub{margin:0 0 14px;color:var(--muted);line-height:1.45;font-weight:800}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    button{cursor:pointer;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:var(--text);padding:12px 14px;font-weight:950}
+    button.primary{background:rgba(110,231,255,.18);border-color:rgba(110,231,255,.40)}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    button:hover{filter:brightness(1.08)}
+    #mobileHint{position:absolute;left:14px;bottom:14px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:10px 12px;font-size:12px;line-height:1.4;opacity:.9;user-select:none}
+    .topbar{display:flex;gap:10px;align-items:center;justify-content:space-between;margin:8px 0 12px}
+    .wallet{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-weight:950}
+    .wallet small{opacity:.75;font-weight:900}
+    .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:14px 0 18px;align-content:start}
+    #start .card{display:flex;flex-direction:column;max-height:min(820px,calc(100vh - 28px));overflow:hidden;padding:22px 22px 18px}
+    #start .title{font-size:clamp(18px,4.8vw,26px);line-height:1.32;padding:4px 6px 2px;margin:0 auto 6px;text-align:center;width:100%;max-width:100%;letter-spacing:-0.4px;white-space:normal;word-break:keep-all;overflow:visible;text-wrap:balance;box-sizing:border-box}
+    #start .sub{font-size:14px}
+    #start .grid{flex:1;min-height:0;overflow-y:auto;padding:4px 8px 6px 2px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.28) transparent}
+    #start .grid::-webkit-scrollbar{width:10px}
+    #start .grid::-webkit-scrollbar-thumb{background:rgba(255,255,255,.22);border-radius:999px;border:2px solid transparent;background-clip:padding-box}
+    #start .grid::-webkit-scrollbar-track{background:transparent}
+    .char{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;gap:10px;padding:14px 12px 12px;min-height:156px;border-radius:22px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.05));box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 10px 26px rgba(0,0,0,.14);cursor:pointer;transition: transform .12s ease, border-color .22s ease, background .22s ease, box-shadow .22s ease, opacity .2s ease;user-select:none;position:relative;overflow:hidden}
+    .char::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.12),transparent 38%,rgba(255,180,228,.05) 100%);opacity:.8;pointer-events:none}
+    .char::after{content:'';position:absolute;left:-20%;top:-18%;width:60%;height:46%;background:radial-gradient(circle,rgba(255,255,255,.18),transparent 70%);pointer-events:none}
+    .char:hover{transform: translateY(-3px) scale(1.01);box-shadow:0 16px 34px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.12)}
+    .char.active{border-color: rgba(255,159,216,.92); background: linear-gradient(180deg,rgba(255,159,216,.22),rgba(123,231,255,.12)); box-shadow:0 0 0 1px rgba(255,159,216,.28),0 18px 40px rgba(255,120,200,.20), inset 0 1px 0 rgba(255,255,255,.14)}
+    .char.locked{opacity:.82}
+    .char.locked:hover{transform:translateY(-1px)}
+    .chipWrap{width:78px;height:78px;border-radius:24px;border:1px solid rgba(255,255,255,.18);background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.24),rgba(255,255,255,.07) 55%,rgba(255,255,255,.03));display:grid;place-items:center;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 8px 20px rgba(0,0,0,.10);position:relative;z-index:1}
+    .chipCanvas{width:74px;height:74px;display:block;filter:saturate(1.16) contrast(1.1)}
+    .charInfo{position:relative;z-index:1}
+    .cname{font-weight:1000;font-size:16px;line-height:1.05;letter-spacing:-.2px}
+    .ctag{opacity:.84;font-weight:900;font-size:12px;margin-top:6px}
+    .stateTag{position:absolute;left:10px;top:10px;padding:5px 9px;border-radius:999px;font-weight:1000;font-size:11px;border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(6px);z-index:2}
+    .stateTag.unlocked{background:rgba(110,231,255,.18);color:#dffbff}
+    .stateTag.lockedState{background:rgba(12,14,22,.50);color:#f6eefe}
+    .stateTag.selected{left:auto;right:10px;background:rgba(255,159,216,.22);color:#fff0f9}
+    .priceTag{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);padding:6px 10px;border-radius:999px;background:rgba(12,14,22,.54);border:1px solid rgba(255,255,255,.14);font-weight:1000;font-size:12px;display:none;backdrop-filter:blur(6px);z-index:2}
+    .char.locked .priceTag{display:block}
+    #start .row{padding-top:10px;border-top:1px solid rgba(255,255,255,.10)}
+    #start .row button{min-width:108px;padding:13px 16px;border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.06));box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+    #start .row button.primary{background:linear-gradient(180deg,rgba(110,231,255,.28),rgba(255,159,216,.16));border-color:rgba(170,241,255,.45)}
+    .elevatorRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0 0;padding:10px 12px;border:1px solid rgba(255,255,255,.10);border-radius:18px;background:rgba(255,255,255,.05)}
+    .elevatorNote{font-size:12px;opacity:.84;font-weight:850}
+    .elevatorBtn{padding:12px 14px;border-radius:16px;background:linear-gradient(180deg,rgba(255,214,102,.18),rgba(255,159,216,.10));border-color:rgba(255,214,102,.35)}
+
+    .startItemsPanel{margin:10px 0 8px;padding:12px;border-radius:20px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.04));box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+    .startItemsTitle{font-weight:1000;font-size:16px;margin-bottom:10px}
+    .useCard{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border-radius:18px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.05);margin-bottom:10px}
+    .useMeta{display:flex;align-items:center;gap:10px}
+    .useIcon{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-size:26px;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.12)}
+    .useName{font-weight:950;font-size:15px}
+    .useDesc{font-size:12px;opacity:.84;font-weight:850;margin-top:2px}
+    .useControls{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .shopSectionTabs{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 10px}
+    .shopTabBtn{flex:1 1 0;padding:12px 14px;border-radius:16px;border:1px solid rgba(255,255,255,.14);background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.05));color:#fff;font-weight:950;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+    .shopTabBtn.active{background:linear-gradient(180deg,rgba(111,227,255,.28),rgba(255,159,216,.14));border-color:rgba(170,241,255,.52);box-shadow:0 12px 26px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.16)}
+    .shopSectionHint{font-size:13px;opacity:.82;font-weight:850;margin:2px 0 10px}
+    .shopListSingle{display:grid !important;grid-template-columns:1fr !important;gap:10px}
+    .shopListTriple{display:grid !important;grid-template-columns:repeat(3,minmax(0,1fr)) !important;gap:10px}
+    .shopListChars{display:grid !important;grid-template-columns:repeat(3,minmax(0,1fr)) !important;gap:10px}
+    .choiceBtn{padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.06));color:#fff;font-weight:950;box-shadow:inset 0 1px 0 rgba(255,255,255,.08);transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease, background .12s ease, opacity .12s ease}
+    .choiceBtn.active{background:linear-gradient(180deg,rgba(110,231,255,.34),rgba(255,159,216,.24));border-color:rgba(170,241,255,.72);box-shadow:0 0 0 2px rgba(170,241,255,.22), 0 10px 24px rgba(93,211,255,.18), inset 0 1px 0 rgba(255,255,255,.18);transform:translateY(-1px)}
+    .choiceBtn.warn.active{background:linear-gradient(180deg,rgba(255,208,94,.36),rgba(255,152,103,.24));border-color:rgba(255,214,102,.78);box-shadow:0 0 0 2px rgba(255,214,102,.20), 0 10px 24px rgba(255,170,60,.18), inset 0 1px 0 rgba(255,255,255,.18)}
+    .choiceBtn:disabled{opacity:.45;filter:saturate(.65);cursor:not-allowed}
+    .promptCard{width:min(560px,92vw);max-height:min(88dvh,760px);overflow:auto;-webkit-overflow-scrolling:touch}
+    .promptRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:12px}
+    .promptTip{font-size:13px;opacity:.88;font-weight:850;line-height:1.45;margin:8px 0 0}
+    #itemPromptPanel .startItemsPanel{margin:0;padding:0;background:none;border:none;box-shadow:none}
+    #itemPromptPanel .useCard{margin-bottom:10px}
+    @media (max-width:980px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+    @media (max-width:640px){.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.char{min-height:148px;padding:12px 10px}.chipWrap{width:72px;height:72px}.chipCanvas{width:68px;height:68px}.cname{font-size:15px}.shopListTriple,.shopListChars{grid-template-columns:repeat(2,minmax(0,1fr)) !important}}
+    .shopScroll{flex:1;min-height:0;overflow-y:auto;padding-right:6px;margin:10px 0 12px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.28) transparent}.shopScroll::-webkit-scrollbar{width:10px}.shopScroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.22);border-radius:999px;border:2px solid transparent;background-clip:padding-box}.shopScroll::-webkit-scrollbar-track{background:transparent}.shopList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:stretch}
+    #shop .card{display:flex;flex-direction:column;max-height:min(820px,calc(100vh - 28px));overflow:hidden}
+    #shop .topbar{flex:0 0 auto}
+    #shop .row{flex:0 0 auto}
+    #shop .shopActions{position:sticky;bottom:0;z-index:5;padding-top:10px;margin-top:4px;background:linear-gradient(180deg,rgba(10,14,34,0),rgba(10,14,34,.78) 28%,rgba(10,14,34,.96) 100%)}
+    #shop .shopTopbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    #shop .shopBackTop{padding:10px 14px;border-radius:14px;white-space:nowrap}
+    #shop .shopScroll{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+    .shopItem{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;padding:10px 8px 10px;min-height:138px;border-radius:18px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.05));box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 8px 18px rgba(0,0,0,.12);text-align:center;position:relative;overflow:hidden}
+    .shopItem::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.12),transparent 38%,rgba(255,180,228,.05) 100%);opacity:.8;pointer-events:none}
+    .shopItem::after{content:'';position:absolute;left:-20%;top:-18%;width:60%;height:46%;background:radial-gradient(circle,rgba(255,255,255,.18),transparent 70%);pointer-events:none}
+    .shopTop{display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:flex-start;width:100%;position:relative;z-index:1}
+    .shopIconBox{width:54px;height:54px;border-radius:18px;display:grid;place-items:center;font-size:24px;background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.24),rgba(255,255,255,.07) 55%,rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 6px 14px rgba(0,0,0,.10)}
+    .shopText{display:flex;flex-direction:column;gap:3px;min-width:0;align-items:center;width:100%;position:relative;z-index:1}
+    .shopName{font-weight:1000;line-height:1.08;font-size:13px;word-break:keep-all;letter-spacing:-.2px}
+    .shopDesc{opacity:.84;font-weight:900;font-size:10px;line-height:1.2;min-height:24px;display:flex;align-items:center;justify-content:center;text-align:center}
+    .shopBottom{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;width:100%;margin-top:auto;position:relative;z-index:1}
+    .priceBadge{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:999px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.12);font-weight:950;font-size:11px}
+    .priceBadge img{width:15px;height:15px;object-fit:contain}
+    .shopItem small{opacity:.78;font-weight:850}
+    .shopItem .right{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .shopBottom button{width:100%;max-width:96px;padding:7px 8px;border-radius:11px;font-size:12px}
+    .badge{padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.12);font-weight:950;font-size:12px}
+    .toast{position:absolute;left:50%;top:14%;transform:translateX(-50%);background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:10px 12px;font-weight:950;opacity:0;transition:opacity .18s ease, transform .18s ease;pointer-events:none;white-space:nowrap}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(2px)}
+    #mobileControls{position:absolute;left:14px;right:14px;bottom:14px;display:none;justify-content:space-between;gap:14px;pointer-events:none;z-index:6}
+    .ctrlBtn{pointer-events:auto;width:min(31.2vw,142px);height:min(18vw,92px);border-radius:24px;border:1px solid rgba(255,255,255,.16);background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.08));backdrop-filter:blur(8px);box-shadow:0 10px 26px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.18);font-size:34px;font-weight:1000;color:var(--text);touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+    .ctrlBtn:active{transform:scale(.97)}
+    @media (max-width:980px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.shopList{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media (max-width:768px){html,body,#wrap{height:100dvh}#wrap{padding:0}#box{width:100vw;height:100dvh;border-radius:0;border:none}.hud{left:10px;right:10px;top:8px;gap:8px;align-items:flex-start}.pill{padding:8px 10px;gap:8px;flex-wrap:wrap;border-radius:18px;font-size:13px;max-width:70vw}.mini{padding:8px 10px;font-size:13px}.btnTiny{padding:8px 10px}.miniRow{gap:8px}.card{width:min(100vw - 20px, 680px);max-height:calc(100dvh - 20px);padding:14px;border-radius:20px;display:flex;flex-direction:column}.title{font-size:26px}.sub{font-size:14px}.topbar{gap:8px;align-items:flex-start;flex-direction:column}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding-right:2px}#start .card{width:100vw;height:100dvh;max-height:100dvh;padding:12px 10px 14px;border-radius:0}#start .grid{grid-template-columns:repeat(2,minmax(0,1fr));overflow-y:auto;flex:1;min-height:0;padding:6px 2px 8px 2px;gap:12px;align-content:start}#start .row{padding-top:8px}#start .title{font-size:clamp(16px,5vw,21px);line-height:1.28;letter-spacing:-0.45px;margin:0 auto 6px;padding:2px 6px;text-align:center;width:100%;max-width:100%;white-space:normal;word-break:keep-all;overflow:visible;text-wrap:balance}#start .sub{font-size:12px;margin-bottom:6px;line-height:1.32}#start .wallet{align-self:stretch;padding:7px 10px;font-size:12px;justify-content:center}#start .startItemsPanel{padding:10px;border-radius:18px;margin:10px 0 8px}#start .useCard{flex-direction:column;align-items:stretch;padding:10px 9px;gap:10px}#start .useControls{justify-content:stretch}#start .choiceBtn{flex:1 1 calc(50% - 8px);padding:10px 8px;font-size:12px}#start .useIcon{width:48px;height:48px;font-size:24px}#start .topbar{gap:6px;margin:2px 0 6px;align-items:stretch}.char{padding:14px 10px 24px;gap:8px;border-radius:18px;min-height:124px;justify-content:flex-start}.chipWrap,.chipCanvas{width:78px;height:78px}.charInfo{padding-bottom:16px}.cname{font-size:16px;line-height:1.12;word-break:keep-all}.ctag{font-size:11px;line-height:1.2;margin-top:5px}.priceTag{bottom:8px}.row{gap:8px}.row button{flex:1 1 calc(50% - 8px);padding:11px 10px}#mobileHint{left:10px;right:10px;bottom:108px;font-size:11px;padding:8px 10px}#timeWrap{left:10px;right:10px;top:76px}.shopScroll{margin:8px 0 10px}.shopItem{padding:12px 8px 12px;border-radius:18px;min-height:124px;gap:8px}.shopIconBox{width:78px;height:78px;border-radius:22px;font-size:28px}.shopName{font-size:14px}.shopDesc{font-size:10px;min-height:24px}#shop .shopList{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.shopBottom button{width:100%;max-width:none}#shop .card{width:min(100vw - 20px, 680px);max-height:calc(100dvh - 20px)}.overlay{padding:10px}#mobileControls{display:flex}.wallet{padding:8px 10px;font-size:13px}}
+    @media (max-width:420px){.pill{max-width:66vw;font-size:12px}.title{font-size:23px}.row button{flex-basis:100%}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.chipWrap,.chipCanvas{width:72px;height:72px}#start .card{padding:10px 8px 12px}#start .title{font-size:16px;line-height:1.25;padding:2px 4px}#start .sub{font-size:11px;line-height:1.28}#start .topbar{margin:2px 0 6px}#start .grid{gap:10px}#start .wallet{font-size:11px;padding:6px 8px}.char{padding:12px 8px 24px;min-height:116px}.charInfo{padding-bottom:14px}.cname{font-size:14px}.ctag{font-size:10px}#shop .shopItem{min-height:116px;padding:10px 8px 10px}#shop .shopIconBox{width:72px;height:72px}#shop .shopDesc{min-height:22px}#itemPrompt{align-items:flex-start;padding:8px}#itemPrompt .promptCard{width:100%;max-height:calc(100dvh - 16px);padding:12px 10px 14px;border-radius:18px}#itemPrompt .title{font-size:18px;line-height:1.2;margin-bottom:6px}#itemPrompt .sub{font-size:11px;line-height:1.3;margin-bottom:8px}#itemPrompt .startItemsTitle{font-size:14px;margin-bottom:8px}#itemPrompt .useCard{padding:8px;gap:8px;margin-bottom:8px;flex-direction:column;align-items:stretch}#itemPrompt .useMeta{gap:8px;align-items:center}#itemPrompt .useIcon{width:40px;height:40px;font-size:21px;border-radius:13px}#itemPrompt .useName{font-size:13px}#itemPrompt .useDesc{font-size:10px;line-height:1.25}#itemPrompt .useControls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;justify-content:stretch}#itemPrompt .useCard:nth-of-type(3) .useControls{grid-template-columns:repeat(3,minmax(0,1fr))}#itemPrompt .choiceBtn{padding:9px 6px;font-size:11px;border-radius:12px}#itemPrompt .promptRow{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(12,16,38,.02),rgba(12,16,38,.92) 24%,rgba(12,16,38,.98));padding-top:8px;margin-top:8px}#itemPrompt .promptRow button{flex:1 1 calc(50% - 6px);padding:11px 8px}#itemPrompt .promptTip{font-size:10px;line-height:1.25;margin-top:6px;text-align:center}}
+    @media (pointer:coarse){ #mobileHint{display:block} }
+  
+.character-card img[src*="jet"], .character-card img[data-char="jet"], .shop-character img[src*="jet"], .shop-character img[data-char="jet"], #jetPreview, #jetCard img { transform: scaleX(1.1); transform-origin: center center; }
+
+    .coinIcon{width:20px;height:20px;display:inline-block;vertical-align:-4px;object-fit:contain;filter:none}
+    .wallet .coinIcon{width:18px;height:18px;vertical-align:-3px}
+
+
+    .bonusImgWrap{display:flex;justify-content:center;align-items:center;padding:8px 0 4px}
+    .bonusImgWrap img{width:min(240px,55vw);height:auto;display:block;image-rendering:auto;filter:drop-shadow(0 10px 18px rgba(0,0,0,.22))}
+    #bonusReward .title{font-size:34px}
+    #bonusReward .sub strong{font-size:18px}
+
+
+    .rankOnlineBar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:10px 0 12px;padding:12px 14px;border-radius:18px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05)}
+    .rankOnlineMeta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .statusDot{width:10px;height:10px;border-radius:999px;display:inline-block;background:#aab}
+    .statusDot.on{background:#6ee7ff;box-shadow:0 0 12px rgba(110,231,255,.55)}
+    .statusDot.off{background:#ffb4d8;box-shadow:0 0 12px rgba(255,180,216,.35)}
+    .rankConfig{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin:10px 0 0}
+    .rankConfig input{min-width:0}
+    .rankTip{font-size:12px;opacity:.82;font-weight:800;line-height:1.45}
+    .rankSmall{font-size:12px;opacity:.8;font-weight:850}
+  </style>
+
+<style id="ui-refresh-v1">
+:root{
+  --ui-card:linear-gradient(180deg,rgba(19,25,60,.94),rgba(11,15,35,.92));
+  --ui-soft:rgba(255,255,255,.07);
+  --ui-soft-2:rgba(255,255,255,.11);
+  --ui-line:rgba(255,255,255,.14);
+  --ui-strong:rgba(110,231,255,.22);
+}
+#box{box-shadow:0 20px 80px rgba(9,8,20,.50)}
+.card{background:var(--ui-card)}
+button{min-height:46px;padding:10px 12px;border-radius:14px;box-shadow:0 6px 16px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.08);transition:transform .12s ease, filter .16s ease, background .16s ease}
+button:hover{transform:translateY(-1px)}
+button:active{transform:translateY(0) scale(.98)}
+button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,231,255,.13));border-color:rgba(110,231,255,.36)}
+
+/* 시작 화면 */
+#start .card{padding:24px 24px 20px;background:linear-gradient(180deg,rgba(17,24,58,.96),rgba(10,14,32,.95))}
+#start .title{font-size:clamp(26px,5.2vw,40px);margin-bottom:8px;text-shadow:0 8px 24px rgba(0,0,0,.28)}
+#start .topbar{align-items:center;justify-content:space-between;margin-bottom:12px}
+#start .topbar .sub{padding:12px 14px;border-radius:18px;background:rgba(255,255,255,.05);border:1px solid var(--ui-line)}
+#start .wallet{border-radius:18px;background:rgba(255,255,255,.08);border:1px solid var(--ui-line);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+#start .grid{padding-top:8px;padding-bottom:8px}
+#start .row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-top:14px}
+#start .row button{font-size:15px;font-weight:1000;min-height:50px}
+#btnStart{font-size:18px;background:linear-gradient(180deg,rgba(110,231,255,.28),rgba(110,231,255,.16));border-color:rgba(110,231,255,.38)}
+#btnRanking{background:linear-gradient(180deg,rgba(255,185,230,.22),rgba(255,185,230,.12));border-color:rgba(255,185,230,.30)}
+
+/* HUD / 게임 화면 */
+.hud{top:10px;gap:12px}
+.pill,.mini{box-shadow:0 10px 26px rgba(0,0,0,.18)}
+#timeWrap{top:62px;height:16px;border-radius:999px;box-shadow:0 8px 22px rgba(0,0,0,.15)}
+#mobileHint{bottom:146px;border-radius:14px;padding:8px 12px;background:rgba(8,12,26,.40);backdrop-filter:blur(8px)}
+#mobileControls{left:8px;right:8px;bottom:max(82px, calc(env(safe-area-inset-bottom) + 76px));gap:0;justify-content:space-between}
+#mobileControls .ctrlBtn{width:min(21vw,88px);height:min(12vw,54px);font-size:22px;border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.07));box-shadow:0 6px 14px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.16)}
+#btnLeft{margin-right:auto}
+#btnRight{margin-left:auto}
+
+/* 게임 오버 */
+#over .card{max-width:520px;text-align:center;padding:28px 24px}
+#over .title{font-size:clamp(30px,6vw,42px);margin-bottom:10px}
+#overText{font-size:clamp(22px,4.6vw,30px);font-weight:1000;color:#fff;margin-bottom:18px}
+#over .row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#btnRetry{grid-column:1/-1;min-height:60px;font-size:18px}
+
+/* 랭킹 화면 */
+#ranking .card{display:flex;flex-direction:column;gap:12px;max-width:760px;max-height:min(820px,calc(100vh - 60px));overflow:auto;padding:22px 22px 28px;position:relative;z-index:20}
+#ranking .title{font-size:clamp(28px,5vw,38px);margin-bottom:2px}
+.rankTopbar{display:flex;gap:12px;align-items:stretch;justify-content:space-between;flex-wrap:wrap}
+.rankTopbar .sub{flex:1;min-width:240px;padding:14px 16px;border-radius:18px;background:rgba(255,255,255,.05);border:1px solid var(--ui-line)}
+.rankTopbar .wallet{min-width:140px;justify-content:center;border-radius:18px;background:rgba(255,255,255,.08);border:1px solid var(--ui-line)}
+.rankProfile{display:grid;grid-template-columns:1fr 1fr auto auto;gap:10px}
+.rankProfile input,
+.rankConfig input{width:100%;min-width:0;min-height:52px;padding:0 14px;border-radius:16px;border:1px solid var(--ui-line);background:rgba(255,255,255,.06);color:#fff;font-size:15px;font-weight:900;box-sizing:border-box}
+.rankProfile input::placeholder,.rankConfig input::placeholder{color:rgba(255,255,255,.62)}
+.rankOnlineBar{padding:14px 16px;border-radius:18px;background:rgba(255,255,255,.05);border:1px solid var(--ui-line)}
+.rankTabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.rankTab{min-height:54px;font-size:16px;font-weight:1000;background:rgba(255,255,255,.06)}
+.rankTab.active{background:linear-gradient(180deg,rgba(255,185,230,.22),rgba(110,231,255,.14));border-color:rgba(255,255,255,.24)}
+.rankBoard{padding:14px;border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));border:1px solid var(--ui-line)}
+.rankMeta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:10px 12px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid var(--ui-line);font-size:14px;font-weight:900}
+.rankList{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.rankItem,.rankRow,.rankList > div{padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10)}
+.rankMyBox{margin-top:12px;padding:14px 16px;border-radius:18px;background:linear-gradient(180deg,rgba(110,231,255,.16),rgba(110,231,255,.08));border:1px solid rgba(110,231,255,.24);font-weight:950}
+#ranking .row:last-child{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px;padding-bottom:6px}
+#btnRankRefresh,#btnRankClose{min-height:56px;font-size:16px}
+
+/* 도움말 */
+#rankHelp .card{max-width:760px;max-height:min(860px,calc(100vh - 28px));overflow:auto;padding:22px}
+#rankHelp .panel{border-radius:18px;border:1px solid var(--ui-line);background:rgba(255,255,255,.05)}
+
+@media (max-width:900px){
+  #start .row{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (max-width:768px){
+  .hud{left:8px;right:8px;top:8px;gap:8px}
+  .pill{max-width:76vw;padding:8px 10px;font-size:12px}
+  .mini{font-size:12px}
+  #timeWrap{left:8px;right:8px;top:58px;height:14px}
+  #start .card{padding:14px 12px 16px}
+  #start .title{font-size:clamp(24px,7vw,34px)}
+  #start .topbar{gap:10px;align-items:stretch}
+  #start .topbar .sub{font-size:13px;padding:10px 12px}
+  #start .wallet{align-self:flex-end}
+  #start .row{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  #btnStart{grid-column:1/-1}
+  .char{min-height:150px}
+  #mobileHint{left:12px;right:12px;bottom:82px;font-size:10px;text-align:center}
+  #mobileControls{left:14px;right:14px;bottom:96px;gap:10px;justify-content:center}
+  #mobileControls .ctrlBtn{width:min(28vw,108px);height:58px;font-size:22px}
+  #over .card{padding:22px 16px}
+  #over .row{grid-template-columns:1fr 1fr}
+  #btnRetry{grid-column:1/-1}
+  #ranking .card{padding:16px 16px 24px;gap:10px;border-radius:22px;max-height:calc(100vh - 76px)}
+  .rankTopbar{flex-direction:column}
+  .rankTopbar .wallet{width:100%}
+  .rankProfile{grid-template-columns:1fr 1fr}
+  .rankProfile button{min-height:52px}
+  .rankConfig{grid-template-columns:1fr}
+  .rankTabs{gap:8px}
+  .rankTab{font-size:15px;min-height:50px;padding:10px 8px}
+  .rankMeta{flex-direction:column;align-items:stretch}
+  .badge{justify-content:center}
+}
+@media (max-width:480px){
+  #start .grid{gap:10px}
+  #start .row{grid-template-columns:1fr 1fr}
+  #btnStart,#btnRanking{grid-column:1/-1}
+  #ranking .title{font-size:28px}
+  .rankProfile{grid-template-columns:1fr}
+  #ranking .row:last-child{grid-template-columns:1fr 1fr}
+}
+</style>
+
+</head>
+<body>
+  <div id="wrap"><div id="box">
+    <canvas id="c" tabindex="0"></canvas>
+    <div class="toast" id="toast"></div>
+    <div class="hud">
+      <div class="pill">
+        <span>캐릭터</span><b id="who">-</b>
+        <span>점수</span><b id="score">0</b>
+        <img class="coinIcon" src="assets/img_01.png" alt="코인"/><b id="coins">0</b>
+        <span>콤보</span><b id="combo">x1</b>
+        <span>속도</span><b id="spd">1.0x</b>
+        <span>최고점</span><b id="shieldHud">0</b>
+      </div>
+      <div class="miniRow">
+        <div class="mini"><span style="color:var(--muted);font-weight:900">최고</span> <b id="best">0</b></div>
+        <button class="btnTiny" id="btnSound">🔊</button>
+      </div>
+    </div>
+    <div id="timeWrap"><div id="timeFill"></div></div>
+    <div id="mobileHint">모바일: 좌우 버튼 또는 화면 탭<br/>PC: <span style="font-weight:950">←</span> 왼쪽 · <span style="font-weight:950">→</span> 오른쪽</div>
+    <div id="mobileControls" aria-label="모바일 조작 버튼">
+      <button class="ctrlBtn" id="btnLeft" aria-label="왼쪽으로 이동">◀</button>
+      <button class="ctrlBtn" id="btnRight" aria-label="오른쪽으로 이동">▶</button>
+    </div>
+
+    <div id="start" class="overlay">
+      <div class="card">
+        <div class="title" aria-label="game-title">수빈이의 무한의계단</div>
+        <div class="topbar">
+          <div class="sub" style="margin:0"><b>큰 코인</b> + <b>이동 효과음</b> + <b>배경음악</b> 🎵✨</div>
+          <div class="wallet"><small>지갑</small> <img class="coinIcon" src="assets/img_02.png" alt="코인"/> <span id="walletCoins">0</span> <small>최고점</small> <b id="walletShield">0</b></div>
+        </div>
+        <div style="font-weight:1000; margin:8px 0 8px; font-size:18px; letter-spacing:-0.3px;">✨ 캐릭터 선택</div>
+        <div class="grid" id="charGrid"></div>
+        <div id="startItemsPanel" class="startItemsPanel" style="display:none"></div>
+        <div class="row">
+          <button class="primary" id="btnStart">시작</button>
+          <button id="btnShop">상점</button>
+          <button id="btnHow">조작법</button>
+          <button id="btnRanking">친구 랭킹</button>
+        </div>
+        <p class="sub" style="margin-top:10px"><b>상점</b>에서 아이템을 사두고, <b>시작 후 팝업</b>에서 이번 판에 쓸지 고를 수 있어!</p>
+        <p class="sub" style="margin-top:10px">잠금 캐릭터는 <b>상점</b>에서 코인으로 구매할 수 있어!</p>
+      </div>
+    </div>
+
+    <div id="shop" class="overlay" style="display:none">
+      <div class="card">
+        <div class="title">상점</div>
+        <div class="topbar shopTopbar">
+          <div class="sub" id="shopSubText" style="margin:0">코인으로 필요한 <b>아이템</b>을 사두고 시작 전에 골라보자!</div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            
+            <div class="wallet"><small>보유</small> <img class="coinIcon" src="assets/img_03.png" alt="코인"/> <span id="shopWallet">0</span> <small>보호막</small> <b id="shopShield">0</b></div>
+          </div>
+        </div>
+        <div class="shopSectionTabs">
+          <button id="btnShopTabItems" class="shopTabBtn active">아이템 상점</button>
+          <button id="btnShopTabChars" class="shopTabBtn">캐릭터 상점</button>
+        </div>
+        <div id="shopSectionHint" class="shopSectionHint">보호막, 엘리베이터, 코인 2배를 구매할 수 있어.</div>
+        <div class="shopSecretRow" style="display:none"></div>
+        <div class="shopScroll"><div class="shopList shopListSingle" id="shopList"></div></div>
+        <div class="row shopActions">
+          <button class="primary" id="btnShopBack">뒤로</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="how" class="overlay" style="display:none">
+      <div class="card">
+        <div class="title">조작법</div>
+        <p class="sub">
+          - <b>←</b> : 왼쪽 한 칸<br/>
+          - <b>→</b> : 오른쪽 한 칸<br/>
+          - <b>모바일 탭</b> : 방향 전환 + 한 칸<br/>
+          - 코인은 지갑에 누적되어 상점에 사용!
+        </p>
+        <div class="row"><button class="primary" id="btnBack">뒤로</button></div>
+      </div>
+    </div>
+
+    <div id="itemPrompt" class="overlay" style="display:none">
+      <div class="card promptCard">
+        <div class="title">이번 판 아이템 사용할까요?</div>
+        <p class="sub">아이템을 고른 뒤 <b>확인</b>을 누르면 돼. 시간은 <b>첫 방향키부터</b> 줄어들어.</p>
+        <div id="itemPromptPanel" class="startItemsPanel"></div>
+        <div class="promptRow">
+          <button id="btnItemCancel">취소</button>
+          <button class="primary" id="btnItemConfirm">확인</button>
+        </div>
+        <p class="promptTip">확인 뒤 첫 방향키 전까지는 시간 멈춤</p>
+      </div>
+    </div>
+
+    <div id="over" class="overlay" style="display:none">
+      <div class="card">
+        <div class="title">게임 오버</div>
+        <p class="sub" id="overText">점수: 0</p>
+        <div class="row">
+          <button class="primary" id="btnRetry">다시하기</button>
+          <button id="btnMenu">메뉴</button>
+          <button id="btnOverShop">상점</button>
+          <button id="btnOverRanking">랭킹</button>
+        </div>
+      </div>
+    </div>
+
+
+
+    <div id="ranking" class="overlay" style="display:none">
+      <div class="card">
+        <div class="title">친구 랭킹전</div>
+        <div class="rankTopbar">
+          <p class="sub" style="margin:0">닉네임과 그룹코드를 저장하면 <b>오늘 · 이번 주 · 이번 달</b> 최고 점수를 볼 수 있어.</p>
+          <div class="wallet"><small>최근 점수</small> <b id="rankRecentScore">0</b></div>
+        </div>
+        <div class="rankProfile">
+          <input id="rankNickname" maxlength="12" placeholder="닉네임" />
+          <input id="rankGroup" maxlength="16" placeholder="그룹코드" />
+          <button class="primary" id="btnRankSaveProfile">저장</button>
+          <button id="btnRankCreateGroup">새 그룹</button>
+        </div>
+        <div class="rankOnlineBar">
+          <div class="rankOnlineMeta">
+            <div class="badge"><span id="rankStatusDot" class="statusDot off"></span> <b id="rankOnlineStatus">로컬 모드</b></div>
+            <div class="badge">모드: <b id="rankModeLabel">이 기기만 저장</b></div>
+          </div>
+          <button id="btnRankToggleConfig" style="display:none">온라인 연결 설정</button>
+        </div>
+        <div id="rankConfigPanel" style="display:none"></div>
+        <div class="rankTabs">
+          <button class="rankTab active" id="btnRankTabToday">오늘</button>
+          <button class="rankTab" id="btnRankTabWeek">이번 주</button>
+          <button class="rankTab" id="btnRankTabMonth">이번 달</button>
+        </div>
+        <div class="rankBoard">
+          <div class="rankMeta">
+            <div class="badge">그룹: <b id="rankGroupLabel">기본그룹</b></div>
+            <div class="badge">내 최고점: <b id="rankMyBest">0</b></div>
+          </div>
+          <div class="rankSmall" id="rankSyncMessage" style="margin:0 0 10px">지금은 이 기기 안에서만 랭킹이 저장돼.</div>
+          <div class="rankList" id="rankList"></div>
+          <div class="rankMyBox" id="rankMySummary">닉네임과 그룹코드를 저장하면 내 순위가 보여.</div>
+        </div>
+        <div class="row" style="margin-top:14px">
+          <button class="primary" id="btnRankRefresh">새로고침</button>
+          <button id="btnRankClose">뒤로</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="bonusReward" class="overlay" style="display:none">
+      <div class="card">
+        <div class="title">획득!</div>
+        <div class="bonusImgWrap"><img id="bonusCharImg" alt="보너스 캐릭터 볼트"/></div>
+        <p class="sub" id="bonusRewardText"><strong>볼트</strong><br/>100계단 보너스 캐릭터를 획득했어!</p>
+        <div class="row"><button class="primary" id="btnBonusClose">닫기</button></div>
+      </div>
+    </div>
+
+
+    <div id="rankHelp" class="overlay" style="display:none">
+      <div class="card" style="max-width:760px; text-align:left">
+        <div class="title">온라인 랭킹 설정 방법</div>
+        <div class="sub" style="text-align:left; margin-bottom:10px">Firebase Realtime Database를 하나 만들고, 그 주소를 이 게임에 넣으면 각자 스마트폰에서 같은 랭킹을 볼 수 있어.</div>
+        <div class="panel" style="padding:14px; margin-bottom:10px">
+          <b>1단계</b> Firebase 콘솔에서 <b>Realtime Database</b>를 만들기<br/>
+          <b>2단계</b> Database URL 복사하기<br/>
+          <b>3단계</b> 이 게임의 <b>온라인 연결 설정</b>에 URL 붙여넣기<br/>
+          <b>4단계</b> 친구도 같은 파일과 같은 URL을 사용하기<br/>
+          <b>5단계</b> 모두 같은 <b>그룹코드</b>를 저장하기
+        </div>
+        <div class="panel" style="padding:14px; margin-bottom:10px">
+          <div style="font-weight:900; margin-bottom:6px">임시 테스트용 규칙 예시</div>
+          <textarea readonly style="width:100%; min-height:150px; border-radius:14px; border:1px solid rgba(255,255,255,.18); background:rgba(0,0,0,.25); color:#fff; padding:12px; font:12px/1.5 monospace">{
+  "rules": {
+    "rankings": {
+      ".read": true,
+      ".write": true
+    }
+  }
+}</textarea>
+          <div class="rankTip">테스트는 쉽지만 공개 쓰기 상태라서, 나중에는 규칙을 꼭 더 안전하게 바꾸는 게 좋아.</div>
+        </div>
+        <div class="panel" style="padding:14px; margin-bottom:10px">
+          <div style="font-weight:900; margin-bottom:6px">입력 예시</div>
+          <div class="rankTip" style="margin:0">DB URL: https://내프로젝트-default-rtdb.asia-southeast1.firebasedatabase.app</div>
+          <div class="rankTip" style="margin:0">토큰: 비워도 되고, 규칙상 필요할 때만 입력</div>
+          <div class="rankTip" style="margin:0">그룹코드: SUBIN</div>
+        </div>
+        <div class="row"><button class="primary" id="btnRankHelpClose">닫기</button></div>
+      </div>
+    </div>
+
+<script>
+(()=> {
+  const canvas=document.getElementById('c');
+  const ctx=canvas.getContext('2d');
+  ctx.imageSmoothingEnabled=true;
+  try{ ctx.imageSmoothingQuality='high'; }catch(e){}
+  const box=document.getElementById('box');
+
+  function resize(){
+    const r=box.getBoundingClientRect();
+    const dpr=Math.max(1,Math.min(2,window.devicePixelRatio||1));
+    canvas.width=Math.floor(r.width*dpr);
+    canvas.height=Math.floor(r.height*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  window.addEventListener('resize',resize); resize();
+
+  const elWho=document.getElementById('who');
+  const elScore=document.getElementById('score');
+  const elCoins=document.getElementById('coins');
+  const elCombo=document.getElementById('combo');
+  const elSpd=document.getElementById('spd');
+  const elBest=document.getElementById('best');
+  const timeFill=document.getElementById('timeFill');
+  const btnSound=document.getElementById('btnSound');
+
+  const walletCoinsEl=document.getElementById('walletCoins');
+  const shopWalletEl=document.getElementById('shopWallet');
+  const walletShieldEl=document.getElementById('walletShield');
+  const shopShieldEl=document.getElementById('shopShield');
+  const shieldHudEl=document.getElementById('shieldHud');
+  const toastEl=document.getElementById('toast');
+
+  const startUI=document.getElementById('start');
+  const howUI=document.getElementById('how');
+  const itemPromptUI=document.getElementById('itemPrompt');
+  const overUI=document.getElementById('over');
+  const shopUI=document.getElementById('shop');
+  const bonusRewardUI=document.getElementById('bonusReward');
+  const bonusCharImg=document.getElementById('bonusCharImg');
+  const bonusRewardText=document.getElementById('bonusRewardText');
+  const overText=document.getElementById('overText');
+
+  const btnStart=document.getElementById('btnStart');
+  const btnElevator200=document.getElementById('btnElevator200');
+  const btnElevator400=document.getElementById('btnElevator400');
+  const btnHow=document.getElementById('btnHow');
+  const btnRanking=document.getElementById('btnRanking');
+  const btnBack=document.getElementById('btnBack');
+  const btnItemCancel=document.getElementById('btnItemCancel');
+  const btnItemConfirm=document.getElementById('btnItemConfirm');
+  const btnRetry=document.getElementById('btnRetry');
+  const btnOverRanking=document.getElementById('btnOverRanking');
+  const btnMenu=document.getElementById('btnMenu');
+  const btnBonusClose=document.getElementById('btnBonusClose');
+  const btnRankToggleConfig=document.getElementById('btnRankToggleConfig');
+  const btnRankSaveConfig=document.getElementById('btnRankSaveConfig');
+  const btnRankClearConfig=document.getElementById('btnRankClearConfig');
+  const btnRankTestConfig=document.getElementById('btnRankTestConfig');
+  const btnRankHelp=document.getElementById('btnRankHelp');
+  const btnRankHelpClose=document.getElementById('btnRankHelpClose');
+  const rankHelpUI=document.getElementById('rankHelp');
+  const btnReset=document.getElementById('btnReset');
+  const btnShop=document.getElementById('btnShop');
+  const rankingUI=document.getElementById('ranking');
+  const mobileControls=document.getElementById('mobileControls');
+  const mobileHint=document.getElementById('mobileHint');
+  const rankNicknameInput=document.getElementById('rankNickname');
+  const rankGroupInput=document.getElementById('rankGroup');
+  const btnRankSaveProfile=document.getElementById('btnRankSaveProfile');
+  const btnRankCreateGroup=document.getElementById('btnRankCreateGroup');
+  const btnRankTabToday=document.getElementById('btnRankTabToday');
+  const btnRankTabWeek=document.getElementById('btnRankTabWeek');
+  const btnRankTabMonth=document.getElementById('btnRankTabMonth');
+  const rankGroupLabel=document.getElementById('rankGroupLabel');
+  const rankList=document.getElementById('rankList');
+  const rankMyBest=document.getElementById('rankMyBest');
+  const rankMySummary=document.getElementById('rankMySummary');
+  const rankRecentScore=document.getElementById('rankRecentScore');
+  const btnRankRefresh=document.getElementById('btnRankRefresh');
+  const btnRankClose=document.getElementById('btnRankClose');
+  const rankModeLabel=document.getElementById('rankModeLabel');
+  const rankOnlineStatus=document.getElementById('rankOnlineStatus');
+  const rankStatusDot=document.getElementById('rankStatusDot');
+  const rankSyncMessage=document.getElementById('rankSyncMessage');
+  const rankConfigPanel=document.getElementById('rankConfigPanel');
+  const rankDbUrlInput=document.getElementById('rankDbUrl');
+  const rankDbSecretInput=document.getElementById('rankDbSecret');
+  const btnShopBack=document.getElementById('btnShopBack');
+  const btnShopBackTop=document.getElementById('btnShopBackTop');
+  const btnShopReset=document.getElementById('btnShopReset');
+  const btnOverShop=document.getElementById('btnOverShop');
+  const btnShopTabItems=document.getElementById('btnShopTabItems');
+  const btnShopTabChars=document.getElementById('btnShopTabChars');
+  const shopSectionHint=document.getElementById('shopSectionHint');
+  const shopSubText=document.getElementById('shopSubText');
+
+  const charGrid=document.getElementById('charGrid');
+  const startItemsPanel=document.getElementById('itemPromptPanel');
+  const shopList=document.getElementById('shopList');
+
+  const WORLD={w:()=>canvas.getBoundingClientRect().width,h:()=>canvas.getBoundingClientRect().height};
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const randInt=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+  const SUBIN_IMG_SRC='assets/img_04.png';
+  const subinImg=new Image();
+  subinImg.src=SUBIN_IMG_SRC;
+  const SEONGBIN_IMG_SRC='assets/img_05.png';
+  const seongbinImg=new Image();
+  seongbinImg.src=SEONGBIN_IMG_SRC;
+
+  const JET_IMG_SRC="assets/img_06.png";
+  const jetImg=new Image();
+  jetImg.src=JET_IMG_SRC;
+
+  const DONI_IMG_SRC="assets/img_07.png";
+  const DIZZY_IMG_SRC="assets/img_08.png";
+  const JEROME_IMG_SRC="assets/img_09.png";
+  const PAUL_IMG_SRC="assets/img_10.png";
+  const doniImg=new Image();
+  doniImg.src=DONI_IMG_SRC;
+  const dizzyImg=new Image();
+  dizzyImg.src=DIZZY_IMG_SRC;
+  const jeromeImg=new Image();
+  jeromeImg.src=JEROME_IMG_SRC;
+  const paulImg=new Image();
+  paulImg.src=PAUL_IMG_SRC;
+
+  const CUSTOM_SHEET_SRC="assets/img_11.png";
+  const customSheetImg=new Image();
+  customSheetImg.src=CUSTOM_SHEET_SRC;
+  const VOLT_IMG_SRC="assets/img_12.png";
+  const voltImg=new Image();
+  voltImg.src=VOLT_IMG_SRC;
+  bonusCharImg.src=VOLT_IMG_SRC;
+  const SAMMY_IMG_SRC="assets/img_13.png";
+  const sammyImg=new Image();
+  sammyImg.src=SAMMY_IMG_SRC;
+  const LUCY_IMG_SRC="assets/img_14.png";
+  const lucyImg=new Image();
+  lucyImg.src=LUCY_IMG_SRC;
+  const MAX_IMG_SRC="assets/img_15.png";
+  const maxImg=new Image();
+  maxImg.src=MAX_IMG_SRC;
+  const MYMELO_IMG_SRC='assets/img_16.png';
+  const mymeloImg=new Image();
+  mymeloImg.src=MYMELO_IMG_SRC;
+  const KUROMI_IMG_SRC="assets/img_17.png";
+  const kuromiImg=new Image();
+  kuromiImg.src=KUROMI_IMG_SRC;
+  const KITTY_IMG_SRC='assets/img_18.png';
+  const kittyImg=new Image();
+  kittyImg.src=KITTY_IMG_SRC;
+  
+  const PURIN_IMG_SRC='assets/img_19.png';
+  const purinImg=new Image();
+  purinImg.src=PURIN_IMG_SRC;
+  
+  const SHEET_COLS=3, SHEET_ROWS=3;
+  function drawSheetChar(g,ch,dx,dy,dw,dh){
+    if(!ch.sheet || !customSheetImg.complete) return false;
+    const sw=customSheetImg.naturalWidth/SHEET_COLS, sh=customSheetImg.naturalHeight/SHEET_ROWS;
+    const sx=ch.sheet.col*sw, sy=ch.sheet.row*sh;
+    g.drawImage(customSheetImg,sx,sy,sw,sh,dx,dy,dw,dh);
+    return true;
+  }
+
+  function toast(msg){
+    toastEl.textContent=msg;
+    toastEl.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t=setTimeout(()=>toastEl.classList.remove('show'),1200);
+  }
+
+  // ===== Audio =====
+  let audio={ctx:null,master:null,bgmGain:null,sfxGain:null,muted:false,started:false,bgmTimer:null,bgmStep:0};
+  let bootLocked=true;
+  function ensureAudio(){
+    if(audio.ctx) return;
+    const AC=window.AudioContext||window.webkitAudioContext;
+    audio.ctx=new AC();
+    audio.master=audio.ctx.createGain(); audio.master.gain.value=0.55;
+    audio.bgmGain=audio.ctx.createGain(); audio.bgmGain.gain.value=0.38;
+    audio.sfxGain=audio.ctx.createGain(); audio.sfxGain.gain.value=0.70;
+    audio.bgmGain.connect(audio.master);
+    audio.sfxGain.connect(audio.master);
+    audio.master.connect(audio.ctx.destination);
+  }
+  function setMuted(m){
+    audio.muted=m;
+    btnSound.textContent=m?'🔇':'🔊';
+    if(audio.master) audio.master.gain.value=m?0.0:0.55;
+  }
+  function startBGM(){
+    ensureAudio();
+    if(audio.ctx && audio.ctx.state==='suspended'){
+      audio.ctx.resume().catch(()=>{});
+    }
+    if(audio.started) return;
+    audio.started=true;
+    const tempo=144;
+    const stepSec=60/tempo/4; // 16th-note grid
+    const lead=[
+      659.25,783.99,880.00,783.99, 739.99,783.99,659.25,587.33,
+      659.25,783.99,987.77,783.99, 880.00,783.99,659.25,587.33,
+      698.46,830.61,932.33,830.61, 783.99,698.46,659.25,587.33,
+      659.25,739.99,783.99,739.99, 659.25,587.33,523.25,587.33
+    ];
+    const bass=[
+      164.81,164.81,164.81,164.81, 146.83,146.83,146.83,146.83,
+      130.81,130.81,130.81,130.81, 146.83,146.83,146.83,146.83,
+      174.61,174.61,174.61,174.61, 146.83,146.83,146.83,146.83,
+      130.81,130.81,130.81,130.81, 146.83,146.83,146.83,146.83
+    ];
+    const sparkle=[
+      1318.51,1567.98,1760.00,1567.98, 1479.98,1567.98,1318.51,1174.66,
+      1318.51,1567.98,1975.53,1567.98, 1760.00,1567.98,1318.51,1174.66,
+      1396.91,1661.22,1864.66,1661.22, 1567.98,1396.91,1318.51,1174.66,
+      1318.51,1479.98,1567.98,1479.98, 1318.51,1174.66,1046.50,1174.66
+    ];
+    const playVoice=(freq,dur,type,peak,attack=0.008,release=0.02, detune=0)=>{
+      const t0=audio.ctx.currentTime;
+      const o=audio.ctx.createOscillator();
+      const g=audio.ctx.createGain();
+      o.type=type;
+      o.frequency.setValueAtTime(freq,t0);
+      if(detune) o.detune.setValueAtTime(detune,t0);
+      g.gain.setValueAtTime(0.0001,t0);
+      g.gain.exponentialRampToValueAtTime(peak,t0+attack);
+      g.gain.exponentialRampToValueAtTime(0.0001,t0+dur+release);
+      o.connect(g); g.connect(audio.bgmGain);
+      o.start(t0); o.stop(t0+dur+release+0.03);
+    };
+    const playKick=()=>{
+      const t0=audio.ctx.currentTime;
+      const o=audio.ctx.createOscillator();
+      const g=audio.ctx.createGain();
+      o.type='sine';
+      o.frequency.setValueAtTime(160,t0);
+      o.frequency.exponentialRampToValueAtTime(55,t0+0.09);
+      g.gain.setValueAtTime(0.0001,t0);
+      g.gain.exponentialRampToValueAtTime(0.12,t0+0.005);
+      g.gain.exponentialRampToValueAtTime(0.0001,t0+0.10);
+      o.connect(g); g.connect(audio.bgmGain);
+      o.start(t0); o.stop(t0+0.11);
+    };
+    audio.bgmTimer=setInterval(()=>{
+      if(audio.muted) return;
+      const i=audio.bgmStep%lead.length;
+      playVoice(lead[i], stepSec*1.2, 'triangle', 0.08, 0.006, 0.03);
+      if(i%2===0) playVoice(sparkle[i], stepSec*0.7, 'sine', 0.035, 0.004, 0.02, 5);
+      if(i%4===0) playVoice(bass[i], stepSec*3.0, 'square', 0.035, 0.01, 0.04);
+      if(i%4===0 || i%4===2) playKick();
+      audio.bgmStep++;
+    }, stepSec*1000);
+  }
+  function stopBGM(){
+    if(audio.bgmTimer){
+      clearInterval(audio.bgmTimer);
+      audio.bgmTimer=null;
+    }
+    audio.started=false;
+  }
+  function sfxMove(){
+    if(audio.muted) return;
+    ensureAudio();
+    const t0=audio.ctx.currentTime;
+    const o=audio.ctx.createOscillator();
+    const g=audio.ctx.createGain();
+    o.type='square';
+    const base=520+Math.random()*90;
+    o.frequency.setValueAtTime(base,t0);
+    o.frequency.exponentialRampToValueAtTime(base*0.72,t0+0.07);
+    g.gain.setValueAtTime(0.0001,t0);
+    g.gain.exponentialRampToValueAtTime(0.18,t0+0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001,t0+0.09);
+    o.connect(g); g.connect(audio.sfxGain);
+    o.start(t0); o.stop(t0+0.12);
+  }
+  function sfxCoin(){
+    if(audio.muted) return;
+    ensureAudio();
+    const t0=audio.ctx.currentTime;
+    const make=(f,delay)=>{
+      const o=audio.ctx.createOscillator();
+      const g=audio.ctx.createGain();
+      o.type='sine'; o.frequency.setValueAtTime(f,t0+delay);
+      g.gain.setValueAtTime(0.0001,t0+delay);
+      g.gain.exponentialRampToValueAtTime(0.16,t0+delay+0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001,t0+delay+0.14);
+      o.connect(g); g.connect(audio.sfxGain);
+      o.start(t0+delay); o.stop(t0+delay+0.18);
+    };
+    make(1046.5,0.0); make(1318.5,0.04);
+  }
+
+  function userGesture(){
+    startBGM();
+    box.removeEventListener('pointerdown',userGesture);
+    window.removeEventListener('keydown',userGesture);
+  }
+  box.addEventListener('pointerdown',userGesture,{passive:true});
+  window.addEventListener('keydown',userGesture,{passive:true});
+
+  btnSound.addEventListener('click',()=>{
+    setMuted(!audio.muted);
+    localStorage.setItem('tower_mute_v7', audio.muted?'1':'0');
+  });
+  setMuted((localStorage.getItem('tower_mute_v7')||'0')==='1');
+
+  // ===== Characters =====
+  const CHARACTERS=[
+    {id:'seongbin',name:'성빈',tag:'기본 캐릭터',body:'rgba(110,231,255,0.96)',accent:'hood',price:0},
+    {id:'subin',name:'수빈',tag:'기본 캐릭터',body:'rgba(170,110,255,0.96)',accent:'ribbon',price:0},
+    {id:'pinky',name:'핑키',tag:'러블리 점프',price:640,sheet:{col:0,row:0}},
+    {id:'sunny',name:'써니',tag:'별지팡이',price:180,sheet:{col:1,row:0}},
+    {id:'butter',name:'버터',tag:'나비 요정',price:200,sheet:{col:2,row:0}},
+    {id:'ocean',name:'오션',tag:'바다 리본',price:220,sheet:{col:0,row:1}},
+    {id:'flame',name:'플레임',tag:'불꽃 스타',price:240,sheet:{col:1,row:1}},
+    {id:'cotton',name:'코튼',tag:'솜사탕',price:260,sheet:{col:2,row:1}},
+    {id:'bloom',name:'블룸',tag:'꽃빛 요정',price:280,sheet:{col:0,row:2}},
+    {id:'night',name:'나이트',tag:'달밤 요정',price:300,sheet:{col:1,row:2}},
+    {id:'dream',name:'드림',tag:'별모자',price:320,sheet:{col:2,row:2}},
+    {id:'jet',name:'제트',tag:'슈퍼 비행기',price:480,type:'plane',plane:'jet',body:'#ff5454',accent:'#ffffff',trim:'#2a7fff'},
+    {id:'doni',name:'도니',tag:'툴 메카닉',price:520,type:'plane',plane:'doni',body:'#ffd54d',accent:'#2f5dff',trim:'#ffffff'},
+    {id:'dizzy',name:'디지',tag:'핑크 헬리콥터',price:560,type:'plane',plane:'dizzy',body:'#ff7cc8',accent:'#ffffff',trim:'#8f4dff'},
+    {id:'jerome',name:'제롬',tag:'쇼 비행기',price:600,type:'plane',plane:'jerome',body:'#4d7dff',accent:'#fff06a',trim:'#ffffff'},
+    {id:'paul',name:'폴',tag:'구조 경찰기',price:640,type:'plane',plane:'paul',body:'#2d5bff',accent:'#ffffff',trim:'#ffd24d'},
+    {id:'volt',name:'볼트',tag:'100계단 보너스',price:0,type:'reward'},
+    {id:'sammy',name:'새미',tag:'200계단 보너스',price:0,type:'reward'},
+    {id:'lucy',name:'루시',tag:'300계단 보너스',price:0,type:'reward'},
+    {id:'max',name:'맥스',tag:'400계단 보너스',price:0,type:'reward'},
+    {id:'mymelody',name:'마이멜로디',tag:'산리오',price:1000,type:'sanrio'},
+    {id:'kuromi',name:'쿠로미',tag:'산리오',price:1000,type:'sanrio'},
+    {id:'hellokitty',name:'헬로키티',tag:'산리오',price:1000,type:'sanrio'},
+    {id:'pompompurin',name:'폼폼푸린',tag:'산리오',price:1000,type:'sanrio'},
+  ];
+
+  const LS_BEST='tower_best_v7';
+  let best=Number(localStorage.getItem(LS_BEST)||0);
+  elBest.textContent=best;
+
+  const LS_WALLET='tower_wallet_v7';
+  const LS_SHIELD='tower_shield_ticket_v1';
+  const LS_ELEV200='tower_elevator_ticket_200_v1';
+  const LS_ELEV400='tower_elevator_ticket_400_v1';
+  const LS_COIN2X='tower_coin2x_ticket_v1';
+  const LS_THEME_OWNED='tower_theme_owned_v1';
+  const LS_THEME_SELECTED='tower_theme_selected_v1';
+  const LS_UNLOCK='tower_unlock_v7_all_relocked';
+  const LS_CHAR='tower_char_v7';
+  const LS_UNLOCK_RESET_MARK='tower_unlock_reset_done_v2';
+
+  if(!localStorage.getItem(LS_UNLOCK_RESET_MARK)){
+    localStorage.removeItem(LS_UNLOCK);
+    localStorage.removeItem(LS_CHAR);
+    localStorage.setItem(LS_CHAR,'seongbin');
+    localStorage.setItem(LS_UNLOCK_RESET_MARK,'1');
+  }
+
+  let wallet=Number(localStorage.getItem(LS_WALLET)||0);
+  let shieldTickets=Number(localStorage.getItem(LS_SHIELD)||0);
+  let elevatorTickets200=Number(localStorage.getItem(LS_ELEV200)||0);
+  let elevatorTickets400=Number(localStorage.getItem(LS_ELEV400)||0);
+  let coin2xTickets=Number(localStorage.getItem(LS_COIN2X)||0);
+  let ownedThemes=(()=>{
+    try{
+      const raw=JSON.parse(localStorage.getItem(LS_THEME_OWNED)||'{}')||{};
+      return {
+        basic:true,
+        day_sky:!!raw.day_sky,
+        night_sky:!!raw.night_sky,
+        forest:!!raw.forest,
+        space:!!raw.space,
+        winter:!!raw.winter,
+        desert:!!raw.desert
+      };
+    }catch(e){
+      return {
+        basic:true,
+        day_sky:false,
+        night_sky:false,
+        forest:false,
+        space:false,
+        winter:false,
+        desert:false
+      };
+    }
+  })();
+  let selectedTheme=(localStorage.getItem(LS_THEME_SELECTED)||'basic');
+  if(!ownedThemes[selectedTheme]) selectedTheme='basic';
+  let shopSection='items';
+  let selectedShieldUse=false;
+  let selectedElevatorUse=0;
+  let pendingShieldUse=false;
+  let pendingElevatorUse=0;
+  let pendingCoin2xUse=false;
+  let awaitingFirstInput=false;
+  let activeShield=0;
+  let activeCoin2x=false;
+  let selectedCoin2xUse=false;
+  function renderShieldStatus(){
+    if(walletShieldEl) walletShieldEl.textContent=best;
+    if(shopShieldEl) shopShieldEl.textContent=shieldTickets;
+    if(shieldHudEl) shieldHudEl.textContent=best;
+  }
+  function setElevatorTickets200(v){
+    elevatorTickets200=Math.max(0,Math.floor(v));
+    localStorage.setItem(LS_ELEV200,String(elevatorTickets200));
+    updateElevatorButtons();
+  }
+  function setElevatorTickets400(v){
+    elevatorTickets400=Math.max(0,Math.floor(v));
+    localStorage.setItem(LS_ELEV400,String(elevatorTickets400));
+    updateElevatorButtons();
+  }
+  function setWallet(v){
+    wallet=Math.max(0,Math.floor(v));
+    localStorage.setItem(LS_WALLET,String(wallet));
+    walletCoinsEl.textContent=wallet;
+    shopWalletEl.textContent=wallet;
+    updateElevatorButtons();
+    renderShieldStatus();
+  }
+  function setShieldTickets(v){
+    shieldTickets=Math.max(0,Math.floor(v));
+    localStorage.setItem(LS_SHIELD,String(shieldTickets));
+    renderShieldStatus();
+  }
+  function setCoin2xTickets(v){
+    coin2xTickets=Math.max(0,Math.floor(v));
+    localStorage.setItem(LS_COIN2X,String(coin2xTickets));
+  }
+  function saveOwnedThemes(){
+    localStorage.setItem(LS_THEME_OWNED, JSON.stringify(ownedThemes));
+  }
+  function setSelectedTheme(id){
+    selectedTheme = ownedThemes[id] ? id : 'basic';
+    localStorage.setItem(LS_THEME_SELECTED, selectedTheme);
+  }
+  function unlockTheme(id){
+    ownedThemes[id]=true;
+    saveOwnedThemes();
+  }
+
+  setWallet(wallet);
+  setShieldTickets(shieldTickets);
+  setElevatorTickets200(elevatorTickets200);
+  setElevatorTickets400(elevatorTickets400);
+  setCoin2xTickets(coin2xTickets);
+  saveOwnedThemes();
+  setSelectedTheme(selectedTheme);
+
+  const SECRET_SEQ=['L','L','L','L','L','R','R','R','R','R','L'];
+  let secretProgress=0;
+  function resetSecretSequence(){ secretProgress=0; }
+  function registerSecretDir(dir){
+    const expected=SECRET_SEQ[secretProgress];
+    if(dir===expected){
+      secretProgress++;
+      if(secretProgress>=SECRET_SEQ.length){
+        resetSecretSequence();
+        setWallet(wallet+500);
+        renderShop();
+        toast('비밀코드 성공! 500코인 획득!');
+      }
+      return true;
+    }
+    secretProgress=(dir===SECRET_SEQ[0])?1:0;
+    return false;
+  }
+
+  function loadUnlocks(){
+    const raw=(localStorage.getItem(LS_UNLOCK)||'').trim();
+    const set=new Set(raw?raw.split(',').filter(Boolean):[]);
+    set.add('seongbin'); set.add('subin');
+    return set;
+  }
+  function saveUnlocks(set){ localStorage.setItem(LS_UNLOCK, Array.from(set).join(',')); }
+  let unlocked=loadUnlocks(); saveUnlocks(unlocked);
+
+  let selectedCharId=localStorage.getItem(LS_CHAR)||'seongbin';
+  if(!unlocked.has(selectedCharId)) selectedCharId='seongbin';
+  if(!selectedCharId) selectedCharId='seongbin';
+  localStorage.setItem(LS_CHAR, selectedCharId);
+
+  const getChar=()=>CHARACTERS.find(c=>c.id===selectedCharId)||CHARACTERS[0];
+
+
+  const LS_RANK_PROFILE='tower_rank_profile_v1';
+  const LS_RANK_DATA='tower_rank_data_v1';
+  const LS_RANK_ONLINE='tower_rank_online_v1';
+  const FIXED_RANK_DB_URL='https://subin-bc5ca-default-rtdb.firebaseio.com';
+  let rankTab='today';
+  let lastRecordedScore=0;
+  let rankSyncTimer=0;
+  function loadRankOnlineConfig(){
+    return {dbUrl:FIXED_RANK_DB_URL, authToken:''};
+  }
+  function saveRankOnlineConfig(){
+    if(rankDbUrlInput) rankDbUrlInput.value=FIXED_RANK_DB_URL;
+    if(rankDbSecretInput) rankDbSecretInput.value='';
+    updateRankOnlineState('온라인 랭킹이 연결되어 있어.');
+    return loadRankOnlineConfig();
+  }
+  function clearRankOnlineConfig(){
+    updateRankOnlineState('이 게임은 온라인 랭킹이 항상 연결된 상태야.');
+    toast('온라인 랭킹이 연결되어 있어.');
+  }
+  function isRankOnlineEnabled(){
+    return true;
+  }
+  function firebaseUrl(path){
+    const cleanPath=String(path||'').replace(/^\/+/, '');
+    return `${FIXED_RANK_DB_URL}/${cleanPath}.json`;
+  }
+  async function fetchOnlineJson(path){
+    const url=firebaseUrl(path);
+    const res=await fetch(url,{method:'GET',cache:'no-store'});
+    if(!res.ok) throw new Error('online-read-failed');
+    return await res.json();
+  }
+  async function writeOnlineJson(path, data){
+    const url=firebaseUrl(path);
+    const res=await fetch(url,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    if(!res.ok) throw new Error('online-write-failed');
+    return true;
+  }
+  async function testRankOnlineConfig(){
+    try{
+      const pingPath='rankings/__ping__/status';
+      await writeOnlineJson(pingPath, {ok:true, at:Date.now()});
+      await fetchOnlineJson(pingPath);
+      updateRankOnlineState('온라인 연결 완료! 친구와 같은 랭킹을 볼 수 있어.');
+      toast('온라인 연결 확인 성공!');
+      return true;
+    }catch(e){
+      console.warn(e);
+      updateRankOnlineState('연결 실패. Firebase 규칙을 확인해줘.');
+      toast('연결 실패! Firebase 규칙을 확인해줘.');
+      return false;
+    }
+  }
+  function updateRankOnlineState(msg){
+    const cfg=loadRankOnlineConfig();
+    const online=true;
+    if(rankDbUrlInput) rankDbUrlInput.value=cfg.dbUrl;
+    if(rankDbSecretInput) rankDbSecretInput.value='';
+    rankStatusDot.classList.toggle('on', online);
+    rankStatusDot.classList.toggle('off', !online);
+    rankOnlineStatus.textContent='온라인 연결됨';
+    rankModeLabel.textContent='모든 기기에서 공용 랭킹';
+    rankSyncMessage.textContent=msg || '같은 그룹코드를 넣은 친구끼리 같은 랭킹을 봐.';
+  }
+  function getDateParts(){
+    const now=new Date();
+    const local=new Date(now.getTime()-now.getTimezoneOffset()*60000);
+    const day=local.toISOString().slice(0,10);
+    const month=day.slice(0,7);
+    const dow=(local.getDay()+6)%7;
+    const monday=new Date(local);
+    monday.setDate(local.getDate()-dow);
+    const mondayKey=new Date(monday.getTime()-monday.getTimezoneOffset()*60000).toISOString().slice(0,10);
+    return {day,month,week:mondayKey};
+  }
+  function sanitizeNickname(v){ return (v||'').replace(/\s+/g,' ').trim().slice(0,12); }
+  function sanitizeGroup(v){ return (v||'').replace(/\s+/g,'').trim().slice(0,16) || '기본그룹'; }
+  function loadRankProfile(){
+    try{
+      const raw=JSON.parse(localStorage.getItem(LS_RANK_PROFILE)||'{}')||{};
+      return {nickname:sanitizeNickname(raw.nickname||''), group:sanitizeGroup(raw.group||'기본그룹')};
+    }catch{ return {nickname:'', group:'기본그룹'}; }
+  }
+  function saveRankProfile(){
+    const profile={nickname:sanitizeNickname(rankNicknameInput.value), group:sanitizeGroup(rankGroupInput.value)};
+    localStorage.setItem(LS_RANK_PROFILE, JSON.stringify(profile));
+    rankNicknameInput.value=profile.nickname;
+    rankGroupInput.value=profile.group;
+    toast(profile.nickname?`랭킹 저장: ${profile.nickname} / ${profile.group}`:'그룹코드를 저장했어!');
+    return profile;
+  }
+  function loadRankData(){
+    try{ return JSON.parse(localStorage.getItem(LS_RANK_DATA)||'{}')||{}; }catch{ return {}; }
+  }
+  function saveRankData(data){ localStorage.setItem(LS_RANK_DATA, JSON.stringify(data)); }
+  function ensureRankPath(data, group, type, key){
+    if(!data[group]) data[group]={today:{},week:{},month:{}};
+    if(!data[group][type]) data[group][type]={};
+    if(!data[group][type][key]) data[group][type][key]={};
+    return data[group][type][key];
+  }
+  async function recordRankingScore(finalScore){
+    const profile=loadRankProfile();
+    if(!profile.nickname) return false;
+    const parts=getDateParts();
+    const safeScore=Number(finalScore||0);
+    const data=loadRankData();
+    [['today',parts.day],['week',parts.week],['month',parts.month]].forEach(([type,key])=>{
+      const bucket=ensureRankPath(data, profile.group, type, key);
+      bucket[profile.nickname]=Math.max(Number(bucket[profile.nickname]||0), safeScore);
+    });
+    saveRankData(data);
+    lastRecordedScore=safeScore;
+    if(isRankOnlineEnabled()){
+      try{
+        await Promise.all([
+          syncOneRankOnline(profile.group,'today',parts.day,profile.nickname,safeScore),
+          syncOneRankOnline(profile.group,'week',parts.week,profile.nickname,safeScore),
+          syncOneRankOnline(profile.group,'month',parts.month,profile.nickname,safeScore),
+        ]);
+        updateRankOnlineState('온라인 랭킹까지 반영됐어!');
+      }catch(e){
+        console.warn(e);
+        updateRankOnlineState('온라인 저장은 실패했고, 이 기기에는 기록이 남았어.');
+      }
+    }
+    return true;
+  }
+  async function syncOneRankOnline(group,type,key,nickname,score){
+    const path=`rankings/${encodeURIComponent(group)}/${type}/${encodeURIComponent(key)}/${encodeURIComponent(nickname)}`;
+    let current=0;
+    try{
+      const v=await fetchOnlineJson(path);
+      current=Number(v||0);
+    }catch(e){ current=0; }
+    if(score>current) await writeOnlineJson(path, score);
+  }
+  async function getRankingEntries(){
+    const profile=loadRankProfile();
+    const parts=getDateParts();
+    const key=rankTab==='today'?parts.day:(rankTab==='week'?parts.week:parts.month);
+    const data=loadRankData();
+    const group=sanitizeGroup(rankGroupInput.value||profile.group||'기본그룹');
+    let source=((data[group]||{})[rankTab]||{})[key]||{};
+    if(isRankOnlineEnabled()){
+      try{
+        const remote=await fetchOnlineJson(`rankings/${encodeURIComponent(group)}/${rankTab}/${encodeURIComponent(key)}`) || {};
+        source=remote;
+        updateRankOnlineState('온라인 랭킹을 불러왔어.');
+      }catch(e){
+        console.warn(e);
+        updateRankOnlineState('온라인 랭킹을 못 불러와서 이 기기 기록을 보여주는 중이야.');
+      }
+    }
+    return Object.entries(source)
+      .map(([nickname,score])=>({nickname:decodeURIComponent(String(nickname||'')),score:Number(score||0)}))
+      .sort((a,b)=>b.score-a.score || a.nickname.localeCompare(b.nickname,'ko'));
+  }
+  async function renderRanking(){
+    const profile=loadRankProfile();
+    if(document.activeElement!==rankNicknameInput) rankNicknameInput.value=profile.nickname;
+    if(document.activeElement!==rankGroupInput) rankGroupInput.value=profile.group;
+    setTimeout(updateRankOnlineState, 0);
+    rankRecentScore.textContent=lastRecordedScore||0;
+    rankGroupLabel.textContent=sanitizeGroup(rankGroupInput.value||profile.group||'기본그룹');
+    btnRankTabToday.classList.toggle('active', rankTab==='today');
+    btnRankTabWeek.classList.toggle('active', rankTab==='week');
+    btnRankTabMonth.classList.toggle('active', rankTab==='month');
+    rankList.innerHTML='<div class="rankEmpty">랭킹을 불러오는 중...</div>';
+    const entries=await getRankingEntries();
+    rankList.innerHTML='';
+    const me=profile.nickname;
+    let myIndex=-1;
+    let myScore=0;
+    entries.forEach((entry, idx)=>{
+      if(entry.nickname===me){ myIndex=idx; myScore=entry.score; }
+      const row=document.createElement('div');
+      row.className='rankRow'+(entry.nickname===me?' me':'');
+      const medal = idx===0 ? '👑 ' : idx===1 ? '🥈 ' : idx===2 ? '🥉 ' : '';
+      row.innerHTML=`<div class="rankPos">${idx+1}위</div><div class="rankName">${medal}${entry.nickname}</div><div class="rankScore">${entry.score}점</div>`;
+      rankList.appendChild(row);
+    });
+    if(!entries.length){
+      rankList.innerHTML='<div class="rankEmpty">아직 기록이 없어.<br/>닉네임과 그룹코드를 저장한 뒤 게임을 하면 최고 점수가 쌓여.</div>';
+    }
+    rankMyBest.textContent=myScore||0;
+    if(me){
+      rankMySummary.innerHTML = myIndex>=0 ? `내 순위: <b>${myIndex+1}위</b> · 닉네임: <b>${me}</b> · 최고점: <b>${myScore}</b>` : `내 닉네임: <b>${me}</b> · 아직 이 기간 기록이 없어.`;
+    }else{
+      rankMySummary.textContent='닉네임을 저장하면 내 순위가 보여.';
+    }
+  }
+  async function openRanking(){
+    stopBGM();
+    await renderRanking();
+    setOverlay(rankingUI);
+    focus();
+  }
+
+  updateRankOnlineState();
+
+  // draw helpers
+  function roundRect(g,x,y,w,h,r){
+    r=Math.min(r,w/2,h/2);
+    g.beginPath();
+    g.moveTo(x+r,y);
+    g.arcTo(x+w,y,x+w,y+h,r);
+    g.arcTo(x+w,y+h,x,y+h,r);
+    g.arcTo(x,y+h,x,y,r);
+    g.arcTo(x,y,x+w,y,r);
+    g.closePath();
+  }
+  function drawStar(g,cx,cy,r,fill){
+    const pts=5;
+    g.fillStyle=fill;
+    g.beginPath();
+    for(let i=0;i<pts*2;i++){
+      const a=(Math.PI/pts)*i - Math.PI/2;
+      const rr=(i%2===0)?r:(r*0.45);
+      const x=cx+Math.cos(a)*rr, y=cy+Math.sin(a)*rr;
+      if(i===0) g.moveTo(x,y); else g.lineTo(x,y);
+    }
+    g.closePath(); g.fill();
+  }
+  function drawHeart(g,cx,cy,s,fill){
+    g.fillStyle=fill;
+    g.beginPath();
+    g.moveTo(cx, cy + s*0.35);
+    g.bezierCurveTo(cx - s*0.6, cy - s*0.05, cx - s*0.25, cy - s*0.6, cx, cy - s*0.25);
+    g.bezierCurveTo(cx + s*0.25, cy - s*0.6, cx + s*0.6, cy - s*0.05, cx, cy + s*0.35);
+    g.closePath(); g.fill();
+  }
+  function drawAccessory(g, kind, hx, hy, hr){
+    const w='rgba(255,255,255,0.84)', w2='rgba(255,255,255,0.70)';
+    if(kind==='hood'){
+      g.strokeStyle=w2; g.lineWidth=3; g.lineCap='round';
+      g.beginPath(); g.moveTo(hx-6, hy+hr+10); g.lineTo(hx-6, hy+hr+22);
+      g.moveTo(hx+6, hy+hr+10); g.lineTo(hx+6, hy+hr+22); g.stroke();
+      g.fillStyle=w; g.beginPath(); g.arc(hx-6, hy+hr+22, 3, 0, Math.PI*2); g.fill();
+      g.beginPath(); g.arc(hx+6, hy+hr+22, 3, 0, Math.PI*2); g.fill(); return;
+    }
+    if(kind==='ribbon'){
+      const rx=hx+hr*0.30, ry=hy-hr*0.80;
+      g.fillStyle=w; roundRect(g, rx-10, ry-6, 20, 12, 8); g.fill();
+      g.fillStyle=w2;
+      g.beginPath(); g.moveTo(rx-12, ry); g.lineTo(rx-22, ry+8); g.lineTo(rx-10, ry+8); g.closePath(); g.fill();
+      g.beginPath(); g.moveTo(rx+12, ry); g.lineTo(rx+22, ry+8); g.lineTo(rx+10, ry+8); g.closePath(); g.fill(); return;
+    }
+    if(kind==='bear'){
+      g.fillStyle='rgba(80,55,35,0.45)';
+      g.beginPath(); g.arc(hx-hr*0.55, hy-hr*0.70, 7.6, 0, Math.PI*2); g.fill();
+      g.beginPath(); g.arc(hx+hr*0.55, hy-hr*0.70, 7.6, 0, Math.PI*2); g.fill();
+      g.fillStyle='rgba(255,255,255,0.55)';
+      g.beginPath(); g.arc(hx-hr*0.55, hy-hr*0.70, 3.8, 0, Math.PI*2); g.fill();
+      g.beginPath(); g.arc(hx+hr*0.55, hy-hr*0.70, 3.8, 0, Math.PI*2); g.fill(); return;
+    }
+    if(kind==='cap'){
+      g.fillStyle=w; roundRect(g, hx-hr*0.90, hy-hr*1.05, hr*1.80, hr*0.60, 12); g.fill();
+      g.fillStyle='rgba(0,0,0,0.12)'; roundRect(g, hx-hr*0.40, hy-hr*0.60, hr*0.80, hr*0.18, 10); g.fill(); return;
+    }
+    if(kind==='star'){ drawStar(g, hx-hr*0.95, hy+hr*1.20, 9, w); return; }
+    if(kind==='horn'){
+      drawHeart(g, hx-hr*0.55, hy-hr*1.05, 10, 'rgba(255,70,120,0.55)');
+      drawHeart(g, hx+hr*0.55, hy-hr*1.05, 10, 'rgba(255,70,120,0.55)'); return;
+    }
+    if(kind==='cloud'){
+      g.fillStyle='rgba(255,255,255,0.55)';
+      g.beginPath();
+      g.arc(hx-hr*0.45, hy-hr*0.95, 9.5, 0, Math.PI*2);
+      g.arc(hx,          hy-hr*1.05, 11.5, 0, Math.PI*2);
+      g.arc(hx+hr*0.45, hy-hr*0.95, 9.5, 0, Math.PI*2);
+      g.fill(); return;
+    }
+    if(kind==='mask'){
+      g.fillStyle='rgba(0,0,0,0.20)';
+      roundRect(g, hx-hr*0.90, hy-hr*0.05, hr*1.80, hr*0.95, 14); g.fill();
+      g.fillStyle='rgba(255,255,255,0.18)';
+      roundRect(g, hx-hr*0.80, hy+hr*0.15, hr*1.60, hr*0.55, 12); g.fill(); return;
+    }
+    if(kind==='panda'){
+      g.fillStyle='rgba(0,0,0,0.26)';
+      g.beginPath(); g.arc(hx-hr*0.60, hy-hr*0.80, 7.3, 0, Math.PI*2); g.fill();
+      g.beginPath(); g.arc(hx+hr*0.60, hy-hr*0.80, 7.3, 0, Math.PI*2); g.fill();
+      g.fillStyle='rgba(0,0,0,0.18)';
+      g.beginPath(); g.ellipse(hx-hr*0.35, hy, 7.5, 9.5, 0.25, 0, Math.PI*2); g.fill();
+      g.beginPath(); g.ellipse(hx+hr*0.35, hy, 7.5, 9.5, -0.25, 0, Math.PI*2); g.fill(); return;
+    }
+    if(kind==='stripe'){
+      g.strokeStyle='rgba(0,0,0,0.18)'; g.lineWidth=3; g.lineCap='round';
+      for(let i=0;i<4;i++){
+        const xx=hx-hr*0.55 + i*(hr*0.37);
+        g.beginPath(); g.moveTo(xx, hy+hr*0.90); g.lineTo(xx-4, hy+hr*1.25); g.stroke();
+      } return;
+    }
+  }
+
+
+  function drawPlaneAvatar(g,cx,cy,size,ch,dir=1){
+    const s=size/60;
+    g.save();
+    g.translate(cx,cy);
+    g.scale(dir,1);
+    g.shadowColor='rgba(0,0,0,0.16)';
+    g.shadowBlur=7*s;
+    g.shadowOffsetY=2*s;
+
+    const body=ch.body||'#ff5a5a', accent=ch.accent||'#fff', trim=ch.trim||'#7be7ff';
+
+    const wingTop = ()=>{ g.fillStyle=trim; roundRect(g,-13*s,-22*s,26*s,8*s,4*s); g.fill(); };
+    const cheeks = ()=>{ g.fillStyle='rgba(255,180,195,0.95)'; g.beginPath(); g.arc(-13*s,4*s,3.2*s,0,Math.PI*2); g.fill(); g.beginPath(); g.arc(13*s,4*s,3.2*s,0,Math.PI*2); g.fill(); };
+
+    // lower wings
+    g.fillStyle=trim;
+    roundRect(g,-30*s,-2*s,60*s,11*s,6*s); g.fill();
+    g.fillStyle='rgba(255,255,255,0.28)';
+    roundRect(g,-22*s,0,44*s,4*s,3*s); g.fill();
+
+    // tail fins
+    g.fillStyle=body;
+    roundRect(g,15*s,-20*s,11*s,18*s,4*s); g.fill();
+    g.fillStyle=trim;
+    roundRect(g,19*s,-24*s,7*s,6*s,2*s); g.fill();
+
+    // main fuselage
+    g.fillStyle=body;
+    roundRect(g,-23*s,-17*s,46*s,34*s,15*s); g.fill();
+    g.fillStyle='rgba(255,255,255,0.20)';
+    roundRect(g,-18*s,-12*s,16*s,7*s,4*s); g.fill();
+
+    // nose
+    g.fillStyle=body;
+    g.beginPath(); g.moveTo(-23*s,-10*s); g.lineTo(-36*s,0); g.lineTo(-23*s,10*s); g.closePath(); g.fill();
+    g.fillStyle='rgba(255,255,255,0.22)';
+    g.beginPath(); g.moveTo(-22*s,-4*s); g.lineTo(-29*s,0); g.lineTo(-22*s,4*s); g.closePath(); g.fill();
+
+    // face panel
+    g.fillStyle=accent;
+    roundRect(g,-18*s,-11*s,30*s,24*s,11*s); g.fill();
+    g.fillStyle='rgba(255,255,255,0.34)';
+    roundRect(g,-13*s,-9*s,9*s,4*s,2*s); g.fill();
+
+    // eyes
+    g.fillStyle='rgba(18,22,34,0.95)';
+    g.beginPath(); g.ellipse(-8*s,-0.5*s,3.9*s,5.2*s,0,0,Math.PI*2); g.fill();
+    g.beginPath(); g.ellipse(5*s,-0.5*s,3.9*s,5.2*s,0,0,Math.PI*2); g.fill();
+    g.fillStyle='rgba(255,255,255,0.98)';
+    g.beginPath(); g.arc(-9*s,-2.4*s,1.2*s,0,Math.PI*2); g.fill();
+    g.beginPath(); g.arc(4*s,-2.4*s,1.2*s,0,Math.PI*2); g.fill();
+    cheeks();
+
+    // smile
+    g.strokeStyle='rgba(90,40,55,0.60)';
+    g.lineWidth=2*s;
+    g.beginPath(); g.arc(-1.5*s,6*s,6*s,0.15*Math.PI,0.85*Math.PI); g.stroke();
+
+    // arms / engines
+    g.fillStyle=accent;
+    roundRect(g,-31*s,7*s,10*s,9*s,4*s); g.fill();
+    roundRect(g,21*s,7*s,10*s,9*s,4*s); g.fill();
+    g.fillStyle='rgba(255,255,255,0.22)';
+    roundRect(g,-29*s,9*s,6*s,3*s,2*s); g.fill();
+    roundRect(g,23*s,9*s,6*s,3*s,2*s); g.fill();
+
+    // legs
+    g.fillStyle='rgba(255,255,255,0.96)';
+    roundRect(g,-11*s,15*s,7*s,11*s,4*s); g.fill();
+    roundRect(g,4*s,15*s,7*s,11*s,4*s); g.fill();
+    g.fillStyle=trim;
+    roundRect(g,-12*s,23*s,9*s,4*s,2*s); g.fill();
+    roundRect(g,3*s,23*s,9*s,4*s,2*s); g.fill();
+
+    if(ch.plane==='jet'){
+      wingTop();
+      g.fillStyle=trim;
+      roundRect(g,-5*s,-30*s,10*s,11*s,3*s); g.fill();
+      g.fillStyle='rgba(255,255,255,0.96)';
+      g.beginPath(); g.arc(0,-25*s,2.4*s,0,Math.PI*2); g.fill();
+      g.fillStyle='rgba(42,127,255,0.95)';
+      roundRect(g,8*s,-6*s,10*s,4*s,2*s); g.fill();
+    }else if(ch.plane==='doni'){
+      g.fillStyle='rgba(93,124,255,0.98)';
+      roundRect(g,-4*s,-31*s,8*s,12*s,2*s); g.fill();
+      g.fillStyle=trim;
+      roundRect(g,-19*s,-28*s,10*s,5*s,2*s); g.fill();
+      roundRect(g,9*s,-28*s,10*s,5*s,2*s); g.fill();
+      g.fillStyle='rgba(255,255,255,0.92)';
+      roundRect(g,-16*s,-12*s,5*s,24*s,2*s); g.fill();
+      roundRect(g,12*s,-12*s,5*s,24*s,2*s); g.fill();
+    }else if(ch.plane==='dizzy'){
+      g.fillStyle=trim;
+      roundRect(g,-4*s,-31*s,8*s,12*s,3*s); g.fill();
+      g.fillStyle=accent;
+      roundRect(g,-22*s,-31*s,44*s,5*s,2*s); g.fill();
+      g.fillStyle='rgba(255,255,255,0.94)';
+      g.beginPath(); g.arc(0,-29*s,3*s,0,Math.PI*2); g.fill();
+      g.fillStyle='rgba(143,77,255,0.95)';
+      g.beginPath(); g.arc(-27*s,-1*s,3*s,0,Math.PI*2); g.fill();
+      g.beginPath(); g.arc(27*s,-1*s,3*s,0,Math.PI*2); g.fill();
+    }else if(ch.plane==='jerome'){
+      g.fillStyle=accent;
+      g.beginPath(); g.moveTo(14*s,-19*s); g.lineTo(29*s,-28*s); g.lineTo(24*s,-9*s); g.closePath(); g.fill();
+      g.beginPath(); g.moveTo(-4*s,-22*s); g.lineTo(8*s,-31*s); g.lineTo(7*s,-15*s); g.closePath(); g.fill();
+      g.fillStyle='rgba(255,240,106,0.98)';
+      roundRect(g,-20*s,-4*s,10*s,4*s,2*s); g.fill();
+      roundRect(g,-5*s,-4*s,10*s,4*s,2*s); g.fill();
+    }else if(ch.plane==='paul'){
+      g.fillStyle=trim;
+      roundRect(g,-7*s,-27*s,14*s,9*s,3*s); g.fill();
+      g.fillStyle='rgba(255,255,255,0.95)';
+      roundRect(g,-23*s,-26*s,14*s,5*s,2*s); g.fill();
+      roundRect(g,9*s,-26*s,14*s,5*s,2*s); g.fill();
+      g.fillStyle='rgba(255,210,77,0.98)';
+      roundRect(g,-3*s,-10*s,6*s,20*s,2*s); g.fill();
+    }
+
+    g.restore();
+  }
+
+  function drawCharThumb(canvasEl,ch){
+    const g=canvasEl.getContext('2d');
+    const dpr=Math.max(1,Math.min(2,window.devicePixelRatio||1));
+    const W=60,H=60;
+    canvasEl.width=Math.floor(W*dpr); canvasEl.height=Math.floor(H*dpr);
+    g.setTransform(dpr,0,0,dpr,0,0);
+    g.clearRect(0,0,W,H);
+
+    g.fillStyle='rgba(0,0,0,0.16)';
+    roundRect(g,2,3,W-4,H-6,14); g.fill();
+
+    if(ch.id==='subin' && subinImg.complete){
+      g.drawImage(subinImg,3,3,54,54);
+      return;
+    }
+    if(ch.id==='seongbin' && seongbinImg.complete){
+      g.drawImage(seongbinImg,3,3,54,54);
+      return;
+    }
+    if(ch.id==='jet' && jetImg.complete){
+      g.drawImage(jetImg,-2.4,3,64.8,54);
+      return;
+    }
+    if(ch.id==='volt' && voltImg.complete){
+      g.drawImage(voltImg,3,3,54,54);
+      return;
+    }
+    if(ch.id==='sammy' && sammyImg.complete){
+      g.drawImage(sammyImg,3,3,54,54);
+      return;
+    }
+    if(ch.id==='lucy' && lucyImg.complete){
+      g.drawImage(lucyImg,3,3,54,54);
+      return;
+    }
+    if(ch.id==='max' && maxImg.complete){
+      g.drawImage(maxImg,3,3,54,54);
+      return;
+    }
+    if(ch.id==='doni' && doniImg.complete){
+      g.drawImage(doniImg,3,3,54,54);
+      return;
+    }
+    if(ch.id==='dizzy' && dizzyImg.complete){
+      g.drawImage(dizzyImg,3,3,54,54);
+      return;
+    }
+    if(ch.id==='jerome' && jeromeImg.complete){
+      g.drawImage(jeromeImg,3,3,54,54);
+      return;
+    }
+    if(ch.id==='paul' && paulImg.complete){
+      g.drawImage(paulImg,3,3,54,54);
+      return;
+    }
+    if(ch.id==='mymelody' && mymeloImg.complete){
+      g.drawImage(mymeloImg,3,3,54,54);
+      return;
+    }
+    if(ch.id==='kuromi' && kuromiImg.complete){
+      g.drawImage(kuromiImg,3,3,54,54);
+      return;
+    }
+    if(ch.id==='hellokitty' && kittyImg.complete){
+      g.drawImage(kittyImg,3,3,54,54);
+      return;
+    }
+    if(ch.id==='pompompurin' && purinImg.complete){
+      g.drawImage(purinImg,3,3,54,54);
+      return;
+    }
+    if(ch.sheet && customSheetImg.complete){
+      drawSheetChar(g,ch,3,3,54,54);
+      return;
+    }
+    if(ch.type==='plane'){
+      drawPlaneAvatar(g,30,33,54,ch,1);
+      return;
+    }
+
+    const cx=W/2, cy=H/2+3, headR=12, bodyW=20, bodyH=16;
+    g.fillStyle='rgba(0,0,0,0.18)';
+    roundRect(g, cx-bodyW*0.35-4, cy+12, 7, 10, 5); g.fill();
+    roundRect(g, cx+bodyW*0.35-3, cy+12, 7, 10, 5); g.fill();
+    g.fillStyle=ch.body; roundRect(g, cx-bodyW/2, cy+2, bodyW, bodyH, 9); g.fill();
+    g.fillStyle='rgba(255,255,255,0.12)';
+    roundRect(g, cx-bodyW/2-6, cy+5, 7, 12, 5); g.fill();
+    roundRect(g, cx+bodyW/2-1, cy+5, 7, 12, 5); g.fill();
+    g.fillStyle=ch.body; g.beginPath(); g.arc(cx, cy-8, headR, 0, Math.PI*2); g.fill();
+    g.fillStyle='rgba(255,255,255,0.18)'; g.beginPath(); g.arc(cx, cy-8, headR*0.78, 0, Math.PI*2); g.fill();
+    g.fillStyle='rgba(10,12,18,0.88)';
+    g.beginPath(); g.arc(cx-4, cy-10, 2.7, 0, Math.PI*2); g.fill();
+    g.beginPath(); g.arc(cx+4, cy-10, 2.7, 0, Math.PI*2); g.fill();
+    g.fillStyle='rgba(255,255,255,0.90)';
+    g.beginPath(); g.arc(cx-4.9, cy-10.8, 1.0, 0, Math.PI*2); g.fill();
+    g.beginPath(); g.arc(cx+3.1, cy-10.8, 1.0, 0, Math.PI*2); g.fill();
+    drawAccessory(g, ch.accent, cx, cy-8, headR);
+    g.strokeStyle='rgba(255,255,255,0.16)'; g.lineWidth=2;
+    g.beginPath(); g.arc(cx, cy-8, headR, 0, Math.PI*2); g.stroke();
+  }
+
+  function renderCharGrid(){
+    charGrid.innerHTML='';
+    const sortedChars=[...CHARACTERS].sort((a,b)=>{
+      const au=unlocked.has(a.id)?0:1;
+      const bu=unlocked.has(b.id)?0:1;
+      if(au!==bu) return au-bu;
+      return (a.price||0)-(b.price||0) || a.name.localeCompare(b.name,'ko');
+    });
+    sortedChars.forEach(c=>{
+      const isUnlocked=unlocked.has(c.id);
+      const d=document.createElement('div');
+      d.className='char'+(c.id===selectedCharId?' active':'')+(isUnlocked?'':' locked');
+      d.innerHTML=`
+        ${isUnlocked?'<div class="stateTag unlocked">보유중</div>':'<div class="stateTag lockedState">잠금</div>'}
+        ${c.id===selectedCharId?'<div class="stateTag selected">선택중</div>':''}
+        <div class="chipWrap"><canvas class="chipCanvas"></canvas></div>
+        <div class="charInfo"><div class="cname">${c.name}</div><div class="ctag">${c.tag}</div></div>
+        <div class="priceTag">${c.id==='volt'&&!isUnlocked?'🎁 100계단':''}${c.id==='sammy'&&!isUnlocked?'🎁 200계단':''}${c.id==='lucy'&&!isUnlocked?'🎁 300계단':''}${c.id==='max'&&!isUnlocked?'🎁 400계단':''}${c.price>0?`🔒 ${c.price}🪙`:''}</div>`;
+      drawCharThumb(d.querySelector('canvas'), c);
+      d.addEventListener('click',()=>{
+        if(!unlocked.has(c.id)){
+          if(c.id==='volt'){ toast('볼트는 100계단 보상 캐릭터야!'); return; }
+          if(c.id==='sammy'){ toast('새미는 200계단 보상 캐릭터야!'); return; }
+          if(c.id==='lucy'){ toast('루시는 300계단 보상 캐릭터야!'); return; }
+          if(c.id==='max'){ toast('맥스는 400계단 보상 캐릭터야!'); return; }
+          openShop(); toast('잠김! 상점에서 해금해줘 🪙'); return;
+        }
+        selectedCharId=c.id; localStorage.setItem(LS_CHAR, selectedCharId);
+        renderCharGrid(); elWho.textContent=c.name; toast(`${c.name} 선택!`);
+      });
+      charGrid.appendChild(d);
+    });
+  }
+
+  function coinPriceBadge(n){
+    return `<span class="priceBadge"><img src="assets/img_20.png" alt="코인"/>${n}코인</span>`;
+  }
+
+  function itemCardHtml(icon, name, desc, price, buttonHtml){
+    return `
+      <div class="shopTop">
+        <div class="shopIconBox">${icon}</div>
+        <div class="shopText">
+          <div class="shopName">${name}</div>
+          <div class="shopDesc">${desc}</div>
+        </div>
+      </div>
+      <div class="shopBottom">
+        ${coinPriceBadge(price)}
+        <div class="right" style="width:100%;justify-content:center">${buttonHtml}</div>
+      </div>`;
+  }
+
+  function renderShop(){
+    shopList.innerHTML='';
+    shopList.className = 'shopList ' + (shopSection==='items' ? 'shopListTriple' : 'shopListChars');
+    btnShopTabItems.classList.toggle('active', shopSection==='items');
+    btnShopTabChars.classList.toggle('active', shopSection==='chars');
+    shopSectionHint.textContent = shopSection==='items'
+      ? '보호막, 엘리베이터, 코인 2배를 구매할 수 있어.'
+      : '새 캐릭터를 구매하고 바로 선택할 수 있어.';
+    shopSubText.innerHTML = shopSection==='items'
+      ? '코인으로 필요한 <b>아이템</b>을 사두고 시작 전에 골라보자!'
+      : '코인으로 새로운 <b>캐릭터</b>를 구매해보자!';
+
+    if(shopSection==='items'){
+      const shieldRow=document.createElement('div');
+      shieldRow.className='shopItem';
+      shieldRow.innerHTML=itemCardHtml('🛡️','1회용 보호막 (소모형)',`보유 x${shieldTickets}<br>시작 전에 사용할지 고를 수 있어`,100,`<button data-buy-shield class="primary" style="padding:10px 12px;border-radius:14px;width:100%">구매</button>`);
+      shieldRow.querySelector('button[data-buy-shield]').addEventListener('click',buyShieldTicket);
+      shopList.appendChild(shieldRow);
+
+      const can200 = best >= 200;
+      const enough200 = wallet >= 100;
+      const elevator200=document.createElement('div');
+      elevator200.className='shopItem';
+      elevator200.innerHTML=itemCardHtml('🚀','엘리베이터 200 티켓',`${can200 ? `보유 x${elevatorTickets200}<br>200계단 시작용 · 시작 전에 고를 수 있어` : '최고점 200 이상일 때 구매 가능'}`,100,`<button data-buy-elev="200" class="primary" style="padding:10px 12px;border-radius:14px;width:100%" ${!(can200 && enough200)?'disabled':''}>${!can200?'최고점 부족':(enough200?'구매':'코인 부족')}</button>`);
+      elevator200.querySelector('button[data-buy-elev="200"]').addEventListener('click',buyElevator200Ticket);
+      shopList.appendChild(elevator200);
+
+      const can400 = best >= 400;
+      const enough400 = wallet >= 200;
+      const elevator400=document.createElement('div');
+      elevator400.className='shopItem';
+      elevator400.innerHTML=itemCardHtml('🚀','엘리베이터 400 티켓',`${can400 ? `보유 x${elevatorTickets400}<br>400계단 시작용 · 시작 전에 고를 수 있어` : '최고점 400 이상일 때 구매 가능'}`,200,`<button data-buy-elev="400" class="primary" style="padding:10px 12px;border-radius:14px;width:100%" ${!(can400 && enough400)?'disabled':''}>${!can400?'최고점 부족':(enough400?'구매':'코인 부족')}</button>`);
+      elevator400.querySelector('button[data-buy-elev="400"]').addEventListener('click',buyElevator400Ticket);
+      shopList.appendChild(elevator400);
+
+      const coin2xRow=document.createElement('div');
+      coin2xRow.className='shopItem';
+      coin2xRow.innerHTML=itemCardHtml('💰','코인 2배 티켓',`보유 x${coin2xTickets}<br>이번 판에 먹는 코인이 2배`,50,`<button data-buy-coin2x class="primary" style="padding:10px 12px;border-radius:14px;width:100%" ${wallet<50?'disabled':''}>${wallet>=50?'구매':'코인 부족'}</button>`);
+      coin2xRow.querySelector('button[data-buy-coin2x]').addEventListener('click',buyCoin2xTicket);
+      shopList.appendChild(coin2xRow);
+
+      const themeDefs=[
+        {id:'basic', icon:'🌤️', name:'기본 배경', desc:'무료 기본 배경', price:0},
+        {id:'day_sky', icon:'☀️', name:'낮하늘 배경', desc:'맑고 밝은 파란 하늘', price:300},
+        {id:'night_sky', icon:'🌙', name:'밤하늘 배경', desc:'달과 별이 반짝이는 밤하늘', price:300},
+        {id:'forest', icon:'🌲', name:'숲 배경', desc:'푸른 숲과 자연 풍경', price:300},
+        {id:'space', icon:'🌌', name:'우주 배경', desc:'신비로운 별빛 우주', price:300},
+        {id:'winter', icon:'❄️', name:'겨울 배경', desc:'눈 내리는 겨울 풍경', price:300},
+        {id:'desert', icon:'🏜️', name:'사막 배경', desc:'따뜻한 모래 사막 풍경', price:300}
+      ];
+
+      themeDefs.forEach(theme=>{
+        const owned=!!ownedThemes[theme.id];
+        const row=document.createElement('div');
+        row.className='shopItem';
+
+        if(theme.id==='basic'){
+          row.innerHTML=itemCardHtml(
+            theme.icon,
+            theme.name,
+            selectedTheme==='basic' ? '현재 사용 중' : theme.desc,
+            theme.price,
+            `<button data-apply-theme="${theme.id}" class="primary" style="padding:10px 12px;border-radius:14px;width:100%">${selectedTheme==='basic'?'사용중':'적용'}</button>`
+          );
+          row.querySelector(`[data-apply-theme="${theme.id}"]`).addEventListener('click',()=>applyTheme(theme.id));
+        }else if(!owned){
+          row.innerHTML=itemCardHtml(
+            theme.icon,
+            theme.name,
+            theme.desc,
+            theme.price,
+            `<button data-buy-theme="${theme.id}" class="primary" style="padding:10px 12px;border-radius:14px;width:100%" ${wallet<300?'disabled':''}>${wallet>=300?'구매':'코인 부족'}</button>`
+          );
+          row.querySelector(`[data-buy-theme="${theme.id}"]`).addEventListener('click',()=>buyTheme(theme.id));
+        }else{
+          row.innerHTML=itemCardHtml(
+            theme.icon,
+            theme.name,
+            selectedTheme===theme.id ? '현재 사용 중' : `구매 완료 · ${theme.desc}`,
+            theme.price,
+            `<button data-apply-theme="${theme.id}" class="primary" style="padding:10px 12px;border-radius:14px;width:100%">${selectedTheme===theme.id?'사용중':'적용'}</button>`
+          );
+          row.querySelector(`[data-apply-theme="${theme.id}"]`).addEventListener('click',()=>applyTheme(theme.id));
+        }
+
+        shopList.appendChild(row);
+      });
+
+      return;
+    }
+
+    CHARACTERS.forEach(c=>{
+      if(c.price<=0) return;
+      const isUnlocked=unlocked.has(c.id);
+      const row=document.createElement('div');
+      row.className='shopItem';
+      row.innerHTML=`
+        <div class="shopTop">
+          <div class="chipWrap" style="width:72px;height:72px;border-radius:22px"><canvas class="chipCanvas" style="width:72px;height:72px"></canvas></div>
+          <div class="shopText">
+            <div class="shopName">${c.name}</div>
+            <div class="shopDesc">${c.tag} · ${isUnlocked?'이미 구매함':'구매하면 선택 가능!'}</div>
+          </div>
+        </div>
+        <div class="shopBottom">
+          ${coinPriceBadge(c.price)}
+          <div class="right" style="width:100%;justify-content:center"><button ${isUnlocked?'disabled':''} data-buy="${c.id}" class="primary" style="padding:10px 12px;border-radius:14px;width:100%">${isUnlocked?'구매완료':'구매'}</button></div>
+        </div>`;
+      const canv=row.querySelector('canvas'); drawCharThumb(canv,c);
+      row.querySelector('button[data-buy]').addEventListener('click',()=>buyChar(c.id));
+      shopList.appendChild(row);
+    });
+  }
+
+  function renderStartItems(){
+    if(!startItemsPanel) return;
+    const canUseShield = shieldTickets>0;
+    const canUse200 = elevatorTickets200>0;
+    const canUse400 = elevatorTickets400>0;
+    const canUseCoin2x = coin2xTickets>0;
+    if(!canUseShield) selectedShieldUse=false;
+    if(!canUseCoin2x) selectedCoin2xUse=false;
+    if(selectedElevatorUse===200 && !canUse200) selectedElevatorUse=0;
+    if(selectedElevatorUse===400 && !canUse400) selectedElevatorUse=0;
+    startItemsPanel.innerHTML=`
+      <div class="startItemsTitle">🎒 이번 판 사용할 아이템</div>
+      <div class="useCard">
+        <div class="useMeta">
+          <div class="useIcon">🛡️</div>
+          <div>
+            <div class="useName">보호막</div>
+            <div class="useDesc">보유 x${shieldTickets} · 한 번 막아줘</div>
+          </div>
+        </div>
+        <div class="useControls">
+          <button class="choiceBtn ${!selectedShieldUse?'active':''}" data-use-shield="off">사용 안함</button>
+          <button class="choiceBtn ${selectedShieldUse?'active':''}" data-use-shield="on" ${!canUseShield?'disabled':''}>사용</button>
+        </div>
+      </div>
+      <div class="useCard">
+        <div class="useMeta">
+          <div class="useIcon">🚀</div>
+          <div>
+            <div class="useName">엘리베이터</div>
+            <div class="useDesc">200 보유 x${elevatorTickets200} · 400 보유 x${elevatorTickets400}</div>
+          </div>
+        </div>
+        <div class="useControls">
+          <button class="choiceBtn warn ${selectedElevatorUse===0?'active':''}" data-use-elev="0">사용 안함</button>
+          <button class="choiceBtn warn ${selectedElevatorUse===200?'active':''}" data-use-elev="200" ${!canUse200?'disabled':''}>200 사용</button>
+          <button class="choiceBtn warn ${selectedElevatorUse===400?'active':''}" data-use-elev="400" ${!canUse400?'disabled':''}>400 사용</button>
+        </div>
+      </div>
+      <div class="useCard">
+        <div class="useMeta">
+          <div class="useIcon">💰</div>
+          <div>
+            <div class="useName">코인 2배</div>
+            <div class="useDesc">보유 x${coin2xTickets} · 이번 판 코인 2배</div>
+          </div>
+        </div>
+        <div class="useControls">
+          <button class="choiceBtn ${!selectedCoin2xUse?'active':''}" data-use-coin2x="off">사용 안함</button>
+          <button class="choiceBtn ${selectedCoin2xUse?'active':''}" data-use-coin2x="on" ${!canUseCoin2x?'disabled':''}>사용</button>
+        </div>
+      </div>`;
+    startItemsPanel.querySelectorAll('[data-use-shield]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        selectedShieldUse = btn.dataset.useShield==='on';
+        renderStartItems();
+      });
+    });
+    startItemsPanel.querySelectorAll('[data-use-elev]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        selectedElevatorUse = Number(btn.dataset.useElev||0);
+        renderStartItems();
+      });
+    });
+    startItemsPanel.querySelectorAll('[data-use-coin2x]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        selectedCoin2xUse = btn.dataset.useCoin2x==='on';
+        renderStartItems();
+      });
+    });
+  }
+
+  function buyShieldTicket(){
+    if(wallet<100){ toast('코인이 부족해! 🪙'); return; }
+    setWallet(wallet-100);
+    setShieldTickets(shieldTickets+1);
+    renderShop();
+    updateHUD(); renderShop(); toast('보호막 구매 완료! 시작 전에 사용할지 고를 수 있어');
+    renderStartItems();
+  }
+
+  function buyElevator200Ticket(){
+    if(best < 200){ toast('최고점 200 이상 필요!'); return; }
+    if(wallet < 100){ toast('코인이 부족해! 🪙'); return; }
+    setWallet(wallet-100);
+    setElevatorTickets200(elevatorTickets200+1);
+    renderShop();
+    toast('엘리베이터 200 구매 완료! 시작 전에 쓸지 고를 수 있어');
+    renderStartItems();
+  }
+
+  function buyElevator400Ticket(){
+    if(best < 400){ toast('최고점 400 이상 필요!'); return; }
+    if(wallet < 200){ toast('코인이 부족해! 🪙'); return; }
+    setWallet(wallet-200);
+    setElevatorTickets400(elevatorTickets400+1);
+    renderShop();
+    toast('엘리베이터 400 구매 완료! 시작 전에 쓸지 고를 수 있어');
+    renderStartItems();
+  }
+
+  function buyCoin2xTicket(){
+    if(wallet < 50){ toast('코인이 부족해! 🪙'); return; }
+    setWallet(wallet-50);
+    setCoin2xTickets(coin2xTickets+1);
+    renderShop();
+    toast('코인 2배 구매 완료! 시작 전에 쓸지 고를 수 있어');
+    renderStartItems();
+  }
+
+  function getThemeLabel(id){
+    const map={
+      basic:'기본 배경',
+      day_sky:'낮하늘 배경',
+      night_sky:'밤하늘 배경',
+      forest:'숲 배경',
+      space:'우주 배경',
+      winter:'겨울 배경',
+      desert:'사막 배경'
+    };
+    return map[id] || '배경';
+  }
+
+  function buyTheme(id){
+    if(!ownedThemes.hasOwnProperty(id)) return;
+    if(id==='basic'){ applyTheme('basic'); return; }
+    if(ownedThemes[id]){ applyTheme(id); return; }
+    if(wallet<300){ toast('코인이 부족해! 🪙'); return; }
+    setWallet(wallet-300);
+    unlockTheme(id);
+    setSelectedTheme(id);
+    renderShop();
+    toast(`${getThemeLabel(id)} 구매 완료!`);
+  }
+
+  function applyTheme(id){
+    setSelectedTheme(id);
+    renderShop();
+  }
+
+  function buyChar(id){
+    const c=CHARACTERS.find(x=>x.id===id); if(!c||c.price<=0) return;
+    if(unlocked.has(id)) return;
+    if(wallet<c.price){ toast('코인이 부족해! 🪙'); return; }
+    setWallet(wallet-c.price);
+    unlocked.add(id); saveUnlocks(unlocked);
+    renderCharGrid(); renderShop(); toast(`${c.name} 해금 완료!`);
+  }
+
+
+  // ===== Game =====
+  let running=false, paused=false, gameOver=false;
+  let score=0, runCoins=0, combo=1, comboStreak=0;
+  let time=1.0, speedMul=1.0, last=performance.now();
+  let elevatorMode=false, elevatorTarget=0, elevatorDisplayFloor=0, elevatorTimer=0, elevatorDuration=0, elevatorStartFloor=0;
+
+  const TILE=58, THICK=14, SLOPE=0.24;
+  const steps=[], maxSteps=180;
+  const player={gx:0,gy:0,dir:'R'};
+  let stepPulse=0;
+
+  const camera={x:0,y:0};
+  function desiredAnchor(){ const w=WORLD.w(), h=WORLD.h(); return {x:w*0.5,y:h*0.60}; }
+  function screenFromGridNoCam(gx,gy){
+    const base=desiredAnchor();
+    return {x: base.x + (gx-gy)*(TILE*0.92), y: base.y - (gx+gy)*(TILE*0.78)};
+  }
+  function screenFromGrid(gx,gy){
+    const p=screenFromGridNoCam(gx,gy);
+    return {x:p.x+camera.x, y:p.y+camera.y};
+  }
+  function updateCamera(){
+    const a=desiredAnchor(), p0=screenFromGridNoCam(player.gx,player.gy);
+    camera.x=a.x-p0.x; camera.y=a.y-p0.y;
+  }
+
+  const parts=[];
+  function spawnSparkle(x,y,amount=14){
+    for(let i=0;i<amount;i++){
+      const a=Math.random()*Math.PI*2, sp=70+Math.random()*170;
+      parts.push({x,y,vx:Math.cos(a)*sp, vy:Math.sin(a)*sp-60, life:0.55+Math.random()*0.35, rot:Math.random()*Math.PI*2, spin:(-4+Math.random()*8), kind:(Math.random()<0.55?'star':'dot')});
+    }
+  }
+  function updateParticles(dt){
+    for(let i=parts.length-1;i>=0;i--){
+      const p=parts[i];
+      p.life-=dt; p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=520*dt; p.rot+=p.spin*dt; p.vx*=Math.pow(0.002,dt);
+      if(p.life<=0) parts.splice(i,1);
+    }
+  }
+  
+  function spawnHeartBurst(x,y,color='rgba(255,150,200,0.95)', amount=10){
+    for(let i=0;i<amount;i++){
+      const a=Math.random()*Math.PI*2;
+      const sp=60+Math.random()*130;
+      parts.push({
+        x,y,
+        vx:Math.cos(a)*sp,
+        vy:Math.sin(a)*sp-70,
+        life:0.55+Math.random()*0.35,
+        rot:Math.random()*Math.PI*2,
+        spin:(-3+Math.random()*6),
+        kind:'heart',
+        tint:color
+      });
+    }
+  }
+
+  function drawHeartShape(g, x, y, s, fill){
+    g.save();
+    g.translate(x,y);
+    g.scale(s,s);
+    g.fillStyle=fill;
+    g.beginPath();
+    g.moveTo(0, 0.35);
+    g.bezierCurveTo(-0.6, -0.05, -0.25, -0.6, 0, -0.25);
+    g.bezierCurveTo(0.25, -0.6, 0.6, -0.05, 0, 0.35);
+    g.closePath();
+    g.fill();
+    g.restore();
+  }
+
+function drawParticles(){
+    for(const p of parts){
+      const a=clamp(p.life/0.7,0,1);
+      ctx.save();
+      ctx.translate(p.x,p.y);
+      ctx.rotate(p.rot);
+      if(p.kind==='heart'){
+        ctx.globalAlpha=0.95*a;
+        drawHeartShape(ctx,0,0,10,'rgba(255,160,210,0.95)');
+      }else if(p.kind==='star'){
+        ctx.globalAlpha=0.9*a;
+        drawStar(ctx,0,0,5.6,'rgba(255,255,255,0.95)');
+      }else{
+        ctx.globalAlpha=0.7*a;
+        ctx.fillStyle='rgba(255,255,255,0.85)';
+        ctx.beginPath(); ctx.arc(0,0,2.3,0,Math.PI*2); ctx.fill();
+      }
+      ctx.restore();
+    }
+    ctx.globalAlpha=1;
+  }
+
+  function updateHUD(){
+    elScore.textContent=score;
+    elCoins.textContent=runCoins;
+    elCombo.textContent=`x${combo}`;
+    elSpd.textContent=`${speedMul.toFixed(1)}x`;
+    elBest.textContent=best;
+    renderShieldStatus();
+    timeFill.style.width=`${Math.round(time*100)}%`;
+  }
+
+  function setOverlay(which){
+    startUI.style.display='none'; howUI.style.display='none'; itemPromptUI.style.display='none'; overUI.style.display='none'; shopUI.style.display='none'; rankingUI.style.display='none'; bonusRewardUI.style.display='none';
+    if(which) which.style.display='flex';
+    const overlayOpen = !!which;
+    if(mobileControls) mobileControls.style.display = overlayOpen ? 'none' : 'flex';
+    if(mobileHint) mobileHint.style.display = overlayOpen ? 'none' : '';
+  }
+
+  function stepExists(gx,gy){ return steps.some(s=>s.gx===gx&&s.gy===gy); }
+  function getStep(gx,gy){ return steps.find(s=>s.gx===gx&&s.gy===gy)||null; }
+
+  function ensurePathAhead(){
+    let lastStep=steps[steps.length-1];
+    while(steps.length<maxSteps){
+      let gx=lastStep.gx, gy=lastStep.gy;
+      if(Math.random()<0.5) gx++; else gy++;
+      const depth=gx+gy;
+      steps.push({gx,gy,skin:randInt(0,3), coin:(Math.random()<(0.20+Math.min(0.24,depth/600)))});
+      lastStep=steps[steps.length-1];
+    }
+    const minKeep=(player.gx+player.gy)-12;
+    while(steps.length && (steps[0].gx+steps[0].gy)<minKeep) steps.shift();
+  }
+
+  function resetRun(startFloor=0, useShield=false){
+    running=false; paused=false; gameOver=false;
+    score=startFloor; runCoins=0; combo=1; comboStreak=0; time=1.0; speedMul=1.0;
+    activeShield=0;
+    if(useShield){
+      activeShield=1;
+      setTimeout(()=>toast('보호막 장착!'), 120);
+    }
+    elevatorStartFloor=startFloor;
+    steps.length=0; steps.push({gx:0,gy:0,skin:randInt(0,3),coin:false});
+    let gx=0,gy=0;
+    for(let i=0;i<46;i++){
+      if(Math.random()<0.5) gx++; else gy++;
+      const depth=gx+gy;
+      steps.push({gx,gy,skin:randInt(0,3),coin:(Math.random()<0.24 && depth>2)});
+    }
+    player.gx=0; player.gy=0; player.dir='R';
+    updateCamera(); stepPulse=0; parts.length=0;
+    ensurePathAhead(); updateHUD(); elWho.textContent=getChar().name;
+  }
+
+  let bonusRewardQueue=[];
+
+  function rewardImageSrc(id){
+    if(id==='volt') return VOLT_IMG_SRC;
+    if(id==='sammy') return SAMMY_IMG_SRC;
+    if(id==='lucy') return LUCY_IMG_SRC;
+    if(id==='max') return MAX_IMG_SRC;
+    return '';
+  }
+
+  function showNextBonusReward(){
+    const reward=bonusRewardQueue.shift();
+    if(!reward){
+      setOverlay(overUI);
+      focus();
+      return;
+    }
+    bonusCharImg.src=rewardImageSrc(reward.id);
+    bonusCharImg.alt=`보너스 캐릭터 ${reward.name}`;
+    bonusRewardText.innerHTML=`<strong>${reward.name}</strong><br/>${reward.steps}계단 보너스 캐릭터를 획득했어!`;
+    setOverlay(bonusRewardUI);
+  }
+
+  function maybeUnlockBonusRewards(){
+    const rewards=[];
+    const bonusList=[
+      {id:'volt',name:'볼트',steps:100},
+      {id:'sammy',name:'새미',steps:200},
+      {id:'lucy',name:'루시',steps:300},
+      {id:'max',name:'맥스',steps:400}
+    ];
+    bonusList.forEach(reward=>{
+      if(score>=reward.steps && !unlocked.has(reward.id) && reward.steps>elevatorStartFloor){
+        unlocked.add(reward.id);
+        rewards.push(reward);
+        toast(`${reward.name} 보너스 캐릭터 획득!`);
+      }
+    });
+    if(rewards.length){
+      saveUnlocks(unlocked);
+      renderShop();
+      renderCharGrid();
+    }
+    return rewards;
+  }
+
+  function endGame(reason){
+    gameOver=true; running=false;
+    stopBGM();
+    if(runCoins>0) setWallet(wallet+runCoins);
+    best=Math.max(best,score); localStorage.setItem(LS_BEST,String(best));
+    updateHUD();
+    updateElevatorButtons();
+    const profileNow=loadRankProfile();
+    const rankSaved=!!profileNow.nickname;
+    recordRankingScore(score);
+    overText.innerHTML=`${reason}<br/>점수: <b>${score}</b> · 이번 코인: <b>${runCoins}</b><br/>지갑: <b>${wallet}</b> · 최고점: <b>${best}</b>${rankSaved?'<br/>친구 랭킹에 최고 기록이 반영됐어!':'<br/>닉네임을 저장하면 랭킹에 기록돼!'}`;
+    bonusRewardQueue = maybeUnlockBonusRewards();
+    if(bonusRewardQueue.length){
+      showNextBonusReward();
+    }else{
+      setOverlay(overUI);
+    }
+    renderShop(); renderCharGrid();
+  }
+
+  function updateElevatorButtons(){
+    if(btnElevator200) btnElevator200.style.display='none';
+    if(btnElevator400) btnElevator400.style.display='none';
+  }
+
+  function startElevatorRun(targetFloor, useShield=false){
+    bootLocked=false;
+    resetRun(0, useShield);
+    setOverlay(null);
+    elevatorMode=true;
+    elevatorTarget=targetFloor;
+    elevatorDisplayFloor=0;
+    elevatorTimer=0;
+    elevatorDuration=targetFloor===200 ? 4.0 : 8.0;
+    running=false;
+    paused=false;
+    gameOver=false;
+    focus();
+    toast(`엘리베이터 탑승! ${targetFloor}계단 이동 중`);
+  }
+
+  function finishElevatorRun(){
+    elevatorMode=false;
+    resetRun(elevatorTarget, activeShield>0);
+    running=true;
+    toast(`${elevatorTarget}계단 도착!`);
+    focus();
+  }
+
+  function move(dir){
+    if(!running||paused||gameOver) return;
+    if(!audio.started) startBGM();
+    player.dir=dir;
+    const next={gx: player.gx + (dir==='R'?1:0), gy: player.gy + (dir==='L'?1:0)};
+    if(!stepExists(next.gx,next.gy)){
+      if(activeShield>0){
+        activeShield=0;
+        combo=1; comboStreak=0;
+        time=clamp(time+0.25,0,1);
+        const cur=screenFromGrid(player.gx,player.gy);
+        spawnSparkle(cur.x, cur.y - TILE*0.10, 26);
+        spawnHeartBurst(cur.x, cur.y - TILE*0.10, 'rgba(150,235,255,0.92)', 8);
+        toast('보호막 사용!');
+        updateHUD();
+        return;
+      }
+      endGame('낙하!');
+      return;
+    }
+    player.gx=next.gx; player.gy=next.gy;
+    score++; stepPulse=1.0; sfxMove();
+
+    const st=getStep(player.gx,player.gy);
+    const p=screenFromGrid(player.gx,player.gy);
+
+    if(st && st.coin){
+      st.coin=false; runCoins += activeCoin2x ? 2 : 1;
+      if(getChar().id==='subin'){
+        spawnHeartBurst(p.x, p.y - TILE*0.18, 'rgba(255,160,210,0.95)', 14);
+      }else if(getChar().id==='seongbin'){
+        spawnSparkle(p.x, p.y - TILE*0.10, 18);
+      }else{
+        spawnSparkle(p.x, p.y - TILE*0.10, 18);
+      }
+      sfxCoin();
+    }else{
+      if(getChar().id==='subin'){
+        spawnHeartBurst(p.x, p.y - TILE*0.18, 'rgba(255,160,210,0.95)', 7);
+      }else if(getChar().id==='seongbin'){
+        spawnSparkle(p.x, p.y - TILE*0.10, 8);
+      }else{
+        spawnSparkle(p.x, p.y - TILE*0.10, 6);
+      }
+    }
+
+    comboStreak++;
+    combo = comboStreak>=6?3 : comboStreak>=3?2 : 1;
+    time=clamp(time + (0.028 + combo*0.010), 0, 1);
+    speedMul=1.0 + Math.min(2.2, score/60)*0.6;
+
+    ensurePathAhead(); updateHUD();
+  }
+
+  // input
+  const focus=()=>{ try{canvas.focus({preventScroll:true})}catch(e){try{canvas.focus()}catch(_){}} };
+  const btnLeft=document.getElementById('btnLeft');
+  const btnRight=document.getElementById('btnRight');
+  let lastInputAt=0;
+  function canStepOnce(){
+    const now=performance.now();
+    if(now-lastInputAt<135) return false;
+    lastInputAt=now;
+    return true;
+  }
+  function mobileMove(dir){
+    focus();
+    if(paused||gameOver) return;
+    if(!canStepOnce()) return;
+    registerSecretDir(dir);
+    if(beginRunFromInput(dir)) return;
+    if(!running) return;
+    move(dir);
+  }
+  box.addEventListener('pointerdown',focus,{passive:true});
+  canvas.addEventListener('pointerdown',(e)=>{
+    e.preventDefault(); focus();
+    if(!running||paused||gameOver) return;
+    if(matchMedia('(pointer: coarse)').matches) return;
+    if(!canStepOnce()) return;
+    move(player.dir==='R'?'L':'R');
+  },{passive:false});
+  [btnLeft,btnRight].forEach(btn=>{
+    btn.addEventListener('pointerdown',(e)=>{ e.preventDefault(); e.stopPropagation(); mobileMove(btn===btnLeft?'L':'R'); },{passive:false});
+  });
+  window.addEventListener('keydown',(e)=>{
+    if(e.repeat) return;
+    if(shopUI.style.display!=="none"){
+      if(e.code==='ArrowLeft'){ e.preventDefault(); registerSecretDir('L'); return; }
+      if(e.code==='ArrowRight'){ e.preventDefault(); registerSecretDir('R'); return; }
+      if(e.code.startsWith('Arrow')) resetSecretSequence();
+      return;
+    }
+    if(e.code==='ArrowLeft'){
+      e.preventDefault();
+      if(!canStepOnce()) return;
+      registerSecretDir('L');
+      if(beginRunFromInput('L')) return;
+      move('L');
+    }
+    if(e.code==='ArrowRight'){
+      e.preventDefault();
+      if(!canStepOnce()) return;
+      registerSecretDir('R');
+      if(beginRunFromInput('R')) return;
+      move('R');
+    }
+  },{passive:false});
+
+  // render helpers
+  function drawGlow(x,y,r,color){
+    const g=ctx.createRadialGradient(x,y,0,x,y,r);
+    g.addColorStop(0,color); g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+  }
+
+  function drawThemeImageContained(img,w,h){
+    if(!img || !img.complete || !img.naturalWidth || !img.naturalHeight) return false;
+    const iw=img.naturalWidth, ih=img.naturalHeight;
+    const scale=Math.min(w/iw, h/ih);
+    const dw=iw*scale, dh=ih*scale;
+    const dx=(w-dw)/2, dy=(h-dh)/2;
+
+    ctx.fillStyle='rgba(12,16,36,0.55)';
+    ctx.fillRect(0,0,w,h);
+
+    ctx.save();
+    ctx.globalAlpha=0.22;
+    const coverScale=Math.max(w/iw, h/ih);
+    const bdw=iw*coverScale, bdh=ih*coverScale;
+    const bdx=(w-bdw)/2, bdy=(h-bdh)/2;
+    ctx.filter='blur(18px)';
+    ctx.drawImage(img,bdx,bdy,bdw,bdh);
+    ctx.restore();
+
+    ctx.save();
+    ctx.shadowColor='rgba(0,0,0,0.24)';
+    ctx.shadowBlur=24;
+    ctx.drawImage(img,dx,dy,dw,dh);
+    ctx.restore();
+    return true;
+  }
+  function drawStairTile(cx,cy,alpha,skin){
+    const x=cx-TILE/2, y=cy-TILE/2;
+    const palettes=[
+      {top1:[249,224,244], top2:[233,203,239], side:[197,162,215], edge:[86,68,130], mortar:[255,255,255]},
+      {top1:[223,232,252], top2:[203,216,245], side:[161,178,226], edge:[71,84,142], mortar:[255,255,255]},
+      {top1:[236,224,252], top2:[221,205,245], side:[186,160,225], edge:[87,70,143], mortar:[255,255,255]},
+      {top1:[224,247,242], top2:[202,233,230], side:[158,205,203], edge:[69,112,120], mortar:[255,255,255]}
+    ];
+    const p=palettes[skin%palettes.length];
+    const outerR=20;
+    const topG=ctx.createLinearGradient(x,y,x,y+TILE);
+    topG.addColorStop(0,`rgba(${p.top1[0]},${p.top1[1]},${p.top1[2]},${0.98*alpha})`);
+    topG.addColorStop(1,`rgba(${p.top2[0]},${p.top2[1]},${p.top2[2]},${0.98*alpha})`);
+    ctx.fillStyle=topG; roundRect(ctx,x,y,TILE,TILE,outerR); ctx.fill();
+
+    ctx.strokeStyle=`rgba(${p.edge[0]},${p.edge[1]},${p.edge[2]},${0.96*alpha})`;
+    ctx.lineWidth=3.6;
+    roundRect(ctx,x,y,TILE,TILE,outerR);
+    ctx.stroke();
+
+    const topInset=6;
+    const softTop=ctx.createLinearGradient(x,y+topInset,x,y+TILE*0.72);
+    softTop.addColorStop(0,`rgba(255,255,255,${0.16*alpha})`);
+    softTop.addColorStop(0.48,`rgba(255,255,255,${0.07*alpha})`);
+    softTop.addColorStop(1,`rgba(${p.top2[0]},${p.top2[1]},${p.top2[2]},${0.05*alpha})`);
+    ctx.fillStyle=softTop; roundRect(ctx,x+topInset,y+topInset,TILE-topInset*2,TILE*0.62,16); ctx.fill();
+
+    ctx.strokeStyle=`rgba(255,255,255,${0.22*alpha})`;
+    ctx.lineWidth=1.6;
+    roundRect(ctx,x+7,y+7,TILE-14,TILE*0.55,15); ctx.stroke();
+
+    const shine=ctx.createLinearGradient(x,y,x,y+TILE*0.7);
+    shine.addColorStop(0,`rgba(255,255,255,${0.15*alpha})`);
+    shine.addColorStop(1,`rgba(255,255,255,0)`);
+    ctx.fillStyle=shine; roundRect(ctx,x+3,y+3,TILE-6,TILE*0.48,16); ctx.fill();
+  }
+  function drawCoin(cx,cy,alpha){
+    const t=performance.now()/240;
+    const bob=Math.sin(t)*4.5;
+    const spin=(t*3.0)%(Math.PI*2);
+    const w=34 + Math.sin(spin)*5.5;
+    const h=34;
+    if(!window.__coinImg){
+      window.__coinImg=new Image();
+      window.__coinImg.src='assets/img_21.png';
+    }
+    ctx.save();
+    ctx.globalAlpha=alpha;
+    ctx.translate(cx, cy-26+bob);
+    ctx.drawImage(window.__coinImg,-w/2,-h/2,w,h);
+    ctx.restore();
+  }
+
+  function drawShieldBubble(cx,cy){
+    if(activeShield<=0) return;
+    const t=performance.now()/260;
+    const bob=Math.sin(t)*2.1;
+    const r=(TILE*0.58 + Math.sin(t*0.7)*1.2)*1.20;
+    const squashY=1.10;
+    ctx.save();
+    ctx.translate(cx, cy-14+bob);
+
+    const outerGlow=ctx.createRadialGradient(-r*0.26,-r*0.38,r*0.10,0,0,r*1.06);
+    outerGlow.addColorStop(0,'rgba(255,255,255,0.22)');
+    outerGlow.addColorStop(0.40,'rgba(135,235,255,0.12)');
+    outerGlow.addColorStop(0.72,'rgba(90,200,255,0.07)');
+    outerGlow.addColorStop(1,'rgba(90,200,255,0.00)');
+    ctx.fillStyle=outerGlow;
+    ctx.beginPath();
+    ctx.ellipse(0,0,r*1.02,r*squashY,0,0,Math.PI*2);
+    ctx.fill();
+
+    const innerGlow=ctx.createRadialGradient(-r*0.34,-r*0.44,r*0.08,0,0,r*0.96);
+    innerGlow.addColorStop(0,'rgba(255,255,255,0.16)');
+    innerGlow.addColorStop(0.35,'rgba(210,250,255,0.11)');
+    innerGlow.addColorStop(0.75,'rgba(140,225,255,0.05)');
+    innerGlow.addColorStop(1,'rgba(130,220,255,0.01)');
+    ctx.fillStyle=innerGlow;
+    ctx.beginPath();
+    ctx.ellipse(0,0,r*0.92,r*squashY*0.94,0,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.strokeStyle='rgba(170,245,255,0.62)';
+    ctx.lineWidth=2.2;
+    ctx.beginPath();
+    ctx.ellipse(0,0,r*0.98,r*squashY*0.99,0,0,Math.PI*2);
+    ctx.stroke();
+
+    ctx.strokeStyle='rgba(255,255,255,0.34)';
+    ctx.lineWidth=1.1;
+    ctx.beginPath();
+    ctx.ellipse(-r*0.20,-r*0.10,r*0.64,r*squashY*0.56,-0.30,Math.PI*1.06,Math.PI*1.70);
+    ctx.stroke();
+
+    ctx.strokeStyle='rgba(120,225,255,0.24)';
+    ctx.lineWidth=1.0;
+    ctx.beginPath();
+    ctx.ellipse(r*0.10,r*0.08,r*0.76,r*squashY*0.74,0.18,Math.PI*0.10,Math.PI*0.92);
+    ctx.stroke();
+
+    ctx.fillStyle='rgba(255,255,255,0.24)';
+    ctx.beginPath();
+    ctx.ellipse(-r*0.36,-r*0.38,r*0.16,r*0.09,-0.36,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle='rgba(255,255,255,0.12)';
+    ctx.beginPath();
+    ctx.ellipse(-r*0.18,-r*0.18,r*0.08,r*0.045,-0.36,0,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  }
+  function drawCutePlayer(tileX,tileY){
+    const ch=getChar();
+    const idle=Math.sin(performance.now()/180)*1.2;
+    const jump=(stepPulse>0)?(Math.sin(stepPulse*Math.PI)*7.2):0;
+    const oy=-(idle+jump);
+    const drawBubble=()=>{ if(activeShield>0) drawShieldBubble(tileX, tileY+oy); };
+
+    if(ch.id==='subin' && subinImg.complete){
+      ctx.save();
+      ctx.translate(tileX, tileY-11+oy);
+      ctx.scale(player.dir==='R'?1:-1,1);
+      ctx.drawImage(subinImg,-41.14,-41.14,82.28,82.28);
+      ctx.restore();
+      drawBubble();
+      return;
+    }
+
+    if(ch.id==='seongbin' && seongbinImg.complete){
+      ctx.save();
+      ctx.translate(tileX, tileY-11+oy);
+      ctx.scale(player.dir==='R'?1:-1,1);
+      ctx.drawImage(seongbinImg,-41.14,-41.14,82.28,82.28);
+      ctx.restore();
+      drawBubble();
+      return;
+    }
+
+    if(ch.id==='jet' && jetImg.complete){
+      ctx.save();
+      ctx.translate(tileX, tileY-11+oy);
+      ctx.scale(player.dir==='R'?1:-1,1);
+      ctx.drawImage(jetImg,-49.368,-41.14,98.736,82.28);
+      ctx.restore();
+      drawBubble();
+      return;
+    }
+    if(ch.id==='volt' && voltImg.complete){
+      ctx.save();
+      ctx.translate(tileX, tileY-11+oy);
+      ctx.scale(player.dir==='R'?1:-1,1);
+      ctx.drawImage(voltImg,-41.14,-41.14,82.28,82.28);
+      ctx.restore();
+      drawBubble();
+      return;
+    }
+    if(ch.id==='sammy' && sammyImg.complete){
+      ctx.save();
+      ctx.translate(tileX, tileY-11+oy);
+      ctx.scale(player.dir==='R'?1:-1,1);
+      ctx.drawImage(sammyImg,-41.14,-41.14,82.28,82.28);
+      ctx.restore();
+      drawBubble();
+      return;
+    }
+    if(ch.id==='lucy' && lucyImg.complete){
+      ctx.save();
+      ctx.translate(tileX, tileY-11+oy);
+      ctx.scale(player.dir==='R'?1:-1,1);
+      ctx.drawImage(lucyImg,-41.14,-41.14,82.28,82.28);
+      ctx.restore();
+      drawBubble();
+      return;
+    }
+    if(ch.id==='max' && maxImg.complete){
+      ctx.save();
+      ctx.translate(tileX, tileY-11+oy);
+      ctx.scale(player.dir==='R'?1:-1,1);
+      ctx.drawImage(maxImg,-41.14,-41.14,82.28,82.28);
+      ctx.restore();
+      drawBubble();
+      return;
+    }
+    if(ch.id==='doni' && doniImg.complete){
+      ctx.save();
+      ctx.translate(tileX, tileY-11+oy);
+      ctx.scale(player.dir==='R'?1:-1,1);
+      ctx.drawImage(doniImg,-41.14,-41.14,82.28,82.28);
+      ctx.restore();
+      drawBubble();
+      return;
+    }
+    if(ch.id==='dizzy' && dizzyImg.complete){
+      ctx.save();
+      ctx.translate(tileX, tileY-11+oy);
+      ctx.scale(player.dir==='R'?1:-1,1);
+      ctx.drawImage(dizzyImg,-41.14,-41.14,82.28,82.28);
+      ctx.restore();
+      drawBubble();
+      return;
+    }
+    if(ch.id==='jerome' && jeromeImg.complete){
+      ctx.save();
+      ctx.translate(tileX, tileY-11+oy);
+      ctx.scale(player.dir==='R'?1:-1,1);
+      ctx.drawImage(jeromeImg,-41.14,-41.14,82.28,82.28);
+      ctx.restore();
+      drawBubble();
+      return;
+    }
+    if(ch.id==='paul' && paulImg.complete){
+      ctx.save();
+      ctx.translate(tileX, tileY-11+oy);
+      ctx.scale(player.dir==='R'?1:-1,1);
+      ctx.drawImage(paulImg,-41.14,-41.14,82.28,82.28);
+      ctx.restore();
+      drawBubble();
+      return;
+    }
+    if(ch.id==='mymelody' && mymeloImg.complete){
+      ctx.save();
+      ctx.translate(tileX, tileY-11+oy);
+      ctx.scale(player.dir==='R'?1:-1,1);
+      ctx.drawImage(mymeloImg,-41.14,-41.14,82.28,82.28);
+      ctx.restore();
+      drawBubble();
+      return;
+    }
+    if(ch.id==='kuromi' && kuromiImg.complete){
+      ctx.save();
+      ctx.translate(tileX, tileY-11+oy);
+      ctx.scale(player.dir==='R'?1:-1,1);
+      ctx.drawImage(kuromiImg,-41.14,-41.14,82.28,82.28);
+      ctx.restore();
+      drawBubble();
+      return;
+    }
+    if(ch.id==='hellokitty' && kittyImg.complete){
+      ctx.save();
+      ctx.translate(tileX, tileY-11+oy);
+      ctx.scale(player.dir==='R'?1:-1,1);
+      ctx.drawImage(kittyImg,-41.14,-41.14,82.28,82.28);
+      ctx.restore();
+      drawBubble();
+      return;
+    }
+    if(ch.id==='pompompurin' && purinImg.complete){
+      ctx.save();
+      ctx.translate(tileX, tileY-11+oy);
+      ctx.scale(player.dir==='R'?1:-1,1);
+      ctx.drawImage(purinImg,-41.14,-41.14,82.28,82.28);
+      ctx.restore();
+      drawBubble();
+      return;
+    }
+
+    if(ch.sheet && customSheetImg.complete){
+      ctx.save();
+      ctx.translate(tileX, tileY-11+oy);
+      ctx.scale(player.dir==='R'?1:-1,1);
+      drawSheetChar(ctx,ch,-41.14,-41.14,82.28,82.28);
+      ctx.restore();
+      drawBubble();
+      return;
+    }
+
+    if(ch.type==='plane'){
+      ctx.save();
+      ctx.translate(tileX, tileY-9+oy);
+      drawPlaneAvatar(ctx,0,0,82.28,ch,player.dir==='R'?1:-1);
+      ctx.restore();
+      drawBubble();
+      return;
+    }
+
+    const centerX=tileX, baseY=tileY-1;
+    const charScale=1.10;
+    const headR=TILE*0.23*charScale, bodyW=TILE*0.40*charScale, bodyH=TILE*0.30*charScale, armW=TILE*0.12*charScale, armH=TILE*0.26*charScale, legW=TILE*0.13*charScale, legH=TILE*0.22*charScale;
+    const headX=centerX, headY=baseY - TILE*0.18 + oy;
+    const bodyX=centerX - bodyW/2, bodyY=headY + headR*0.70;
+
+    ctx.fillStyle=ch.body; roundRect(ctx, bodyX, bodyY, bodyW, bodyH, 14); ctx.fill();
+
+    ctx.fillStyle='rgba(255,255,255,0.12)';
+    roundRect(ctx, bodyX - armW + 2, bodyY + 6, armW, armH, 10); ctx.fill();
+    roundRect(ctx, bodyX + bodyW - 2, bodyY + 6, armW, armH, 10); ctx.fill();
+
+    const hg = ctx.createLinearGradient(0, bodyY, 0, bodyY+bodyH);
+    hg.addColorStop(0, 'rgba(255,255,255,0.18)');
+    hg.addColorStop(1, 'rgba(255,255,255,0.00)');
+    ctx.fillStyle=hg; roundRect(ctx, bodyX, bodyY, bodyW, bodyH, 14); ctx.fill();
+
+    ctx.fillStyle=ch.body;
+    ctx.beginPath(); ctx.arc(headX, headY, headR, 0, Math.PI*2); ctx.fill();
+
+    ctx.fillStyle='rgba(255,255,255,0.18)';
+    ctx.beginPath(); ctx.arc(headX, headY, headR*0.78, 0, Math.PI*2); ctx.fill();
+
+    ctx.fillStyle='rgba(10,12,18,0.88)';
+    ctx.beginPath(); ctx.arc(headX-headR*0.28, headY-headR*0.10, 4.3, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(headX+headR*0.28, headY-headR*0.10, 4.3, 0, Math.PI*2); ctx.fill();
+
+    ctx.fillStyle='rgba(255,255,255,0.90)';
+    ctx.beginPath(); ctx.arc(headX-headR*0.36, headY-headR*0.20, 1.7, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(headX+headR*0.20, headY-headR*0.20, 1.7, 0, Math.PI*2); ctx.fill();
+
+    ctx.fillStyle='rgba(255,140,170,0.45)';
+    ctx.beginPath(); ctx.arc(headX-headR*0.55, headY+headR*0.22, 5.2, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(headX+headR*0.55, headY+headR*0.22, 5.2, 0, Math.PI*2); ctx.fill();
+
+    ctx.strokeStyle='rgba(10,12,18,0.70)'; ctx.lineWidth=3; ctx.lineCap='round';
+    ctx.beginPath(); ctx.arc(headX, headY+headR*0.22, 6, 0.15*Math.PI, 0.85*Math.PI); ctx.stroke();
+
+    drawAccessory(ctx, ch.accent, headX, headY, headR);
+
+    ctx.strokeStyle='rgba(255,255,255,0.16)'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.arc(headX, headY, headR, 0, Math.PI*2); ctx.stroke();
+    ctx.strokeStyle='rgba(255,255,255,0.14)'; roundRect(ctx, bodyX, bodyY, bodyW, bodyH, 14); ctx.stroke();
+    drawBubble();
+  }
+
+  function update(dt){
+    if(elevatorMode){
+      elevatorTimer += dt;
+      const p = clamp(elevatorTimer / Math.max(0.001, elevatorDuration), 0, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      elevatorDisplayFloor = Math.floor(elevatorTarget * eased);
+      updateParticles(dt);
+      if(p >= 1){ finishElevatorRun(); }
+      return;
+    }
+    if(!running||paused||gameOver){ updateParticles(dt); return; }
+    time -= dt*(0.0675*speedMul);
+    if(time<=0){
+      if(activeShield>0){
+        activeShield=0;
+        time=0.55;
+        combo=1; comboStreak=0;
+        const cur=screenFromGrid(player.gx,player.gy);
+        spawnSparkle(cur.x, cur.y - TILE*0.10, 26);
+        spawnHeartBurst(cur.x, cur.y - TILE*0.10, 'rgba(150,235,255,0.92)', 8);
+        toast('보호막 사용!');
+        updateHUD();
+        return;
+      }
+      time=0; endGame('시간 끝!'); return;
+    }
+    updateCamera();
+    stepPulse=Math.max(0, stepPulse - dt*6.5);
+    updateParticles(dt);
+    updateHUD();
+  }
+  function drawElevatorScene(){
+    const w=WORLD.w(), h=WORLD.h();
+    const shaftX=w*0.5, shaftY=h*0.53;
+    const carW=Math.min(220,w*0.34), carH=Math.min(260,h*0.38);
+    const p=clamp(elevatorTimer / Math.max(0.001, elevatorDuration), 0, 1);
+    const eased=1 - Math.pow(1 - p, 3);
+    const bgShift=(eased*520)%80;
+    for(let i=-1;i<12;i++){
+      const yy=i*80 + bgShift;
+      ctx.fillStyle='rgba(255,255,255,0.06)';
+      ctx.fillRect(0,yy,w,22);
+    }
+    ctx.fillStyle='rgba(18,24,56,0.82)';
+    roundRect(ctx,shaftX-carW*0.68,shaftY-carH*0.72,carW*1.36,carH*1.52,28); ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.lineWidth=3;
+    roundRect(ctx,shaftX-carW*0.68,shaftY-carH*0.72,carW*1.36,carH*1.52,28); ctx.stroke();
+    ctx.fillStyle='rgba(255,214,102,0.15)';
+    roundRect(ctx,shaftX-carW/2,shaftY-carH/2,carW,carH,24); ctx.fill();
+    ctx.strokeStyle='rgba(255,214,102,0.45)';
+    roundRect(ctx,shaftX-carW/2,shaftY-carH/2,carW,carH,24); ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,0.18)';
+    ctx.fillRect(shaftX-6,shaftY-carH/2+18,12,carH-36);
+    const doorGap = p>0.92 ? (p-0.92)/0.08 * (carW*0.30) : 0;
+    ctx.fillStyle='rgba(160,180,255,0.26)';
+    roundRect(ctx,shaftX-carW/2-doorGap,shaftY-carH/2,carW/2,carH,24); ctx.fill();
+    roundRect(ctx,shaftX+doorGap,shaftY-carH/2,carW/2,carH,24); ctx.fill();
+    drawCutePlayer(shaftX, shaftY+34);
+    ctx.fillStyle='#fff';
+    ctx.font='900 24px system-ui';
+    ctx.textAlign='center';
+    ctx.fillText('엘리베이터 이동 중...', shaftX, shaftY-carH*0.78);
+    ctx.font='1000 44px system-ui';
+    ctx.fillStyle='#ffe38a';
+    ctx.fillText(`${elevatorDisplayFloor}`, shaftX, shaftY-carH*0.78 + 56);
+    ctx.font='900 20px system-ui';
+    ctx.fillStyle='rgba(255,255,255,0.92)';
+    ctx.fillText(`${elevatorTarget}계단으로 올라가는 중!`, shaftX, shaftY+carH*0.82);
+    ctx.textAlign='start';
+  }
+  function draw(){
+    const w=WORLD.w(), h=WORLD.h();
+    ctx.clearRect(0,0,w,h);
+    const tt=(player.gx+player.gy);
+    if(!window.__themeImagesLoaded){
+      window.__themeImagesLoaded=true;
+      window.__themeImages={
+        day_sky:new Image(),
+        night_sky:new Image(),
+        forest:new Image(),
+        space:new Image(),
+        winter:new Image(),
+        desert:new Image()
+      };
+      window.__themeImages.day_sky.src='assets/day_sky.png';
+      window.__themeImages.night_sky.src='assets/night_sky.png';
+      window.__themeImages.forest.src='assets/forest.png';
+      window.__themeImages.space.src='assets/space.png';
+      window.__themeImages.winter.src='assets/winter.png';
+      window.__themeImages.desert.src='assets/desert.png';
+      Object.values(window.__themeImages).forEach(img=>{
+        img.addEventListener('load', ()=>{
+          forceInitialCharacterLayout();
+          lazyBootUI();
+        });
+      });
+    }
+
+    const themeImgs=window.__themeImages||{};
+    const themeImg=themeImgs[selectedTheme];
+
+    if(selectedTheme!=='basic' && themeImg && themeImg.complete){
+      drawThemeImageContained(themeImg,w,h);
+      ctx.fillStyle='rgba(0,0,0,0.06)';
+      ctx.fillRect(0,0,w,h);
+    }else if(selectedTheme==='basic'){
+      drawGlow(w*0.28, h*0.20, 240, 'rgba(110,231,255,0.10)');
+      drawGlow(w*0.78, h*0.38, 280, 'rgba(170,110,255,0.08)');
+      ctx.fillStyle='rgba(255,255,255,0.06)';
+      for(let i=0;i<95;i++){ ctx.fillRect((i*97+tt*13)%w,(i*53+tt*7)%h,2,2); }
+    }else{
+      drawGlow(w*0.28, h*0.20, 240, 'rgba(110,231,255,0.10)');
+      drawGlow(w*0.78, h*0.38, 280, 'rgba(170,110,255,0.08)');
+      ctx.fillStyle='rgba(255,255,255,0.06)';
+      for(let i=0;i<95;i++){ ctx.fillRect((i*97+tt*13)%w,(i*53+tt*7)%h,2,2); }
+    }
+    if(elevatorMode){
+      drawElevatorScene();
+      drawParticles();
+      return;
+    }
+    const list=steps.slice().sort((a,b)=>(a.gx+a.gy)-(b.gx+b.gy));
+    for(const s of list){
+      const p=screenFromGrid(s.gx,s.gy);
+      const depth=s.gx+s.gy;
+      const alpha=clamp(1-((player.gx+player.gy)-depth)*0.08,0.10,1);
+      drawStairTile(p.x,p.y,alpha,s.skin);
+      if(s.coin && alpha>0.25) drawCoin(p.x,p.y - TILE*0.02,alpha);
+    }
+    const tile=screenFromGrid(player.gx,player.gy);
+    ctx.strokeStyle='rgba(255,255,255,0.55)'; ctx.lineWidth=3;
+    roundRect(ctx, tile.x-TILE/2, tile.y-TILE/2, TILE, TILE, 14); ctx.stroke();
+    drawCutePlayer(tile.x,tile.y);
+    drawParticles();
+
+  }
+
+  // UI wiring
+  btnHow.addEventListener('click',()=>{ setOverlay(howUI); focus(); });
+  btnRanking.addEventListener('click',()=>openRanking());
+  btnOverRanking.addEventListener('click',()=>openRanking());
+  btnRankSaveProfile.addEventListener('click',async ()=>{ saveRankProfile(); await renderRanking(); });
+  btnRankCreateGroup.addEventListener('click',async ()=>{
+    const code='TEAM'+Math.floor(1000+Math.random()*9000);
+    rankGroupInput.value=code;
+    saveRankProfile();
+    await renderRanking();
+  });
+  if(btnRankToggleConfig) btnRankToggleConfig.addEventListener('click',()=>{ rankConfigPanel.style.display=rankConfigPanel.style.display==='none'?'block':'none'; });
+  if(btnRankSaveConfig) btnRankSaveConfig.addEventListener('click',async ()=>{ saveRankOnlineConfig(); await renderRanking(); });
+  if(btnRankTestConfig) btnRankTestConfig.addEventListener('click',async ()=>{ saveRankOnlineConfig(); await testRankOnlineConfig(); await renderRanking(); });
+  if(btnRankHelp) btnRankHelp.addEventListener('click',()=>setOverlay(rankHelpUI));
+  if(btnRankHelpClose) btnRankHelpClose.addEventListener('click',()=>setOverlay(rankingUI));
+  if(btnRankClearConfig) btnRankClearConfig.addEventListener('click',async ()=>{ clearRankOnlineConfig(); await renderRanking(); });
+  btnRankTabToday.addEventListener('click',async ()=>{ rankTab='today'; await renderRanking(); });
+  btnRankTabWeek.addEventListener('click',async ()=>{ rankTab='week'; await renderRanking(); });
+  btnRankTabMonth.addEventListener('click',async ()=>{ rankTab='month'; await renderRanking(); });
+  btnRankRefresh.addEventListener('click',()=>renderRanking());
+  btnRankClose.addEventListener('click',()=>{ stopBGM(); forceInitialCharacterLayout(); setOverlay(startUI); focus(); });
+  btnBack.addEventListener('click',()=>{ stopBGM(); setOverlay(startUI); focus(); });
+  btnShop.addEventListener('click',()=>openShop());
+  btnShopTabItems.addEventListener('click',()=>{ registerSecretDir('L'); shopSection='items'; renderShop(); });
+  btnShopTabChars.addEventListener('click',()=>{ registerSecretDir('R'); shopSection='chars'; renderShop(); });
+  btnShopBack.addEventListener('click',()=>{ stopBGM(); resetSecretSequence(); forceInitialCharacterLayout(); setOverlay(startUI); focus(); });
+  if(btnShopBackTop) btnShopBackTop.addEventListener('click',()=>{ stopBGM(); resetSecretSequence(); forceInitialCharacterLayout(); setOverlay(startUI); focus(); });
+  if(btnShopReset) btnShopReset.addEventListener('click',()=>{ try{ resetProgress(); }catch(e){ console.warn(e); } });
+  btnOverShop.addEventListener('click',()=>openShop());
+  function openShop(){ stopBGM(); resetSecretSequence(); shopWalletEl.textContent=wallet; refreshCharacterUI({shop:true}); setOverlay(shopUI); focus(); }
+  function startGame(){
+    bootLocked=false;
+    activeCoin2x=false;
+    stopBGM();
+    resetRun(0, false);
+    pendingShieldUse=false;
+    pendingElevatorUse=0;
+    pendingCoin2xUse=false;
+    awaitingFirstInput=false;
+    renderStartItems();
+    setOverlay(itemPromptUI);
+    focus();
+  }
+
+  function confirmItemPrompt(){
+    if(selectedShieldUse && shieldTickets<=0){
+      toast('보호막이 부족해!');
+      selectedShieldUse=false;
+      renderStartItems();
+      return;
+    }
+    if(selectedElevatorUse===200 && elevatorTickets200<=0){
+      toast('엘리베이터 200이 부족해!');
+      selectedElevatorUse=0;
+      renderStartItems();
+      return;
+    }
+    if(selectedElevatorUse===400 && elevatorTickets400<=0){
+      toast('엘리베이터 400이 부족해!');
+      selectedElevatorUse=0;
+      renderStartItems();
+      return;
+    }
+    if(selectedCoin2xUse && coin2xTickets<=0){
+      toast('코인 2배가 부족해!');
+      selectedCoin2xUse=false;
+      renderStartItems();
+      return;
+    }
+    pendingShieldUse=!!selectedShieldUse;
+    pendingElevatorUse=selectedElevatorUse;
+    pendingCoin2xUse=!!selectedCoin2xUse;
+    setOverlay(null);
+    awaitingFirstInput=true;
+    running=false;
+    paused=false;
+    gameOver=false;
+    toast('방향키를 누르면 시작!');
+    focus();
+  }
+
+  function beginRunFromInput(dir){
+    if(!awaitingFirstInput) return false;
+    awaitingFirstInput=false;
+    const useShield=pendingShieldUse && shieldTickets>0;
+    const useElev=pendingElevatorUse;
+    const useCoin2x=pendingCoin2xUse && coin2xTickets>0;
+    pendingShieldUse=false;
+    pendingElevatorUse=0;
+    pendingCoin2xUse=false;
+    selectedShieldUse=false;
+    selectedElevatorUse=0;
+    selectedCoin2xUse=false;
+    renderStartItems();
+
+    if(useShield) setShieldTickets(shieldTickets-1);
+    if(useCoin2x) setCoin2xTickets(coin2xTickets-1);
+    activeCoin2x=useCoin2x;
+
+    if(useElev===400 && elevatorTickets400>0){
+      setElevatorTickets400(elevatorTickets400-1);
+      startElevatorRun(400, useShield);
+      return true;
+    }
+    if(useElev===200 && elevatorTickets200>0){
+      setElevatorTickets200(elevatorTickets200-1);
+      startElevatorRun(200, useShield);
+      return true;
+    }
+
+    running=true;
+    if(useShield){
+      activeShield=1;
+      toast('보호막 장착!');
+      updateHUD();
+    }
+    if(useCoin2x){
+      toast('코인 2배 적용!');
+    }
+    if(!audio.started) startBGM();
+    move(dir);
+    return true;
+  }
+  btnStart.addEventListener('click',startGame);
+  btnItemConfirm.addEventListener('click',confirmItemPrompt);
+  btnItemCancel.addEventListener('click',()=>{ stopBGM(); awaitingFirstInput=false; pendingShieldUse=false; pendingElevatorUse=0; pendingCoin2xUse=false; selectedShieldUse=false; selectedElevatorUse=0; selectedCoin2xUse=false; renderStartItems(); setOverlay(startUI); focus(); });
+  if(btnElevator200) btnElevator200.style.display='none';
+  if(btnElevator400) btnElevator400.style.display='none';
+  btnRetry.addEventListener('click',startGame);
+  btnMenu.addEventListener('click',()=>{ stopBGM(); forceInitialCharacterLayout(); setOverlay(startUI); focus(); lazyBootUI(); });
+  btnBonusClose.addEventListener('click',()=>{ showNextBonusReward(); });
+
+  function refreshCharacterUI(opts={}){
+    const full = !!opts.full;
+    renderShieldStatus();
+    if(full || opts.chars) renderCharGrid();
+    if(full || opts.shop) renderShop();
+    if(full || opts.startItems) renderStartItems();
+    elWho.textContent=getChar().name;
+  }
+
+  let lazyUiBooted=false;
+  function lazyBootUI(){
+    if(lazyUiBooted) return;
+    lazyUiBooted=true;
+    setTimeout(()=>{ try{ refreshCharacterUI({full:true}); }catch(e){ console.warn(e); } }, 0);
+  }
+
+  function forceInitialCharacterLayout(){
+    renderShieldStatus();
+    elWho.textContent=getChar().name;
+    if(startUI.style.display!=="none"){
+      renderCharGrid();
+      renderStartItems();
+    }
+    if(shopUI.style.display!=="none"){
+      renderShop();
+    }
+    requestAnimationFrame(()=>{
+      if(startUI.style.display!=="none") renderCharGrid();
+      if(shopUI.style.display!=="none") renderShop();
+    });
+    setTimeout(()=>{
+      if(startUI.style.display!=="none") renderCharGrid();
+      if(shopUI.style.display!=="none") renderShop();
+    },120);
+    setTimeout(()=>{
+      if(startUI.style.display!=="none") renderCharGrid();
+      if(shopUI.style.display!=="none") renderShop();
+    },360);
+  }
+
+  [subinImg,seongbinImg,jetImg,voltImg,sammyImg,lucyImg,maxImg,doniImg,dizzyImg,jeromeImg,paulImg,customSheetImg].forEach(img=>{
+    if(!img) return;
+    img.addEventListener('load', ()=>{
+      forceInitialCharacterLayout();
+      lazyBootUI();
+    });
+  });
+
+  window.addEventListener('load', ()=>{
+    forceInitialCharacterLayout();
+    setTimeout(lazyBootUI, 30);
+  });
+  window.addEventListener('resize', ()=>{
+    if(startUI.style.display!=="none" || shopUI.style.display!=="none") forceInitialCharacterLayout();
+  });
+
+  // init
+  forceInitialCharacterLayout();
+  resetRun(0);
+  updateElevatorButtons();
+  running=false;
+  stopBGM();
+  setOverlay(startUI);
+  const keepStartVisible=()=>{ if(bootLocked){ running=false; setOverlay(startUI); } };
+  window.addEventListener('load', ()=>{ keepStartVisible(); setTimeout(keepStartVisible, 60); setTimeout(keepStartVisible, 240); setTimeout(keepStartVisible, 600); });
+  setTimeout(keepStartVisible, 0);
+  setTimeout(keepStartVisible, 60);
+  setTimeout(keepStartVisible, 240);
+
+  function loop(now){
+    const dt=Math.min(0.033,(now-last)/1000);
+    last=now;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+  </div></div>
+</body>
+</html>
