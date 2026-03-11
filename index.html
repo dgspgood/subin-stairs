@@ -653,9 +653,6 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   }
   function startBGM(){
     ensureAudio();
-    if(audio.ctx && audio.ctx.state==='suspended'){
-      audio.ctx.resume().catch(()=>{});
-    }
     if(audio.started) return;
     audio.started=true;
     const tempo=144;
@@ -2576,7 +2573,7 @@ function drawParticles(){
     renderStartItems();
     setOverlay(itemPromptUI);
     focus();
-    if(!audio.muted && !audio.started) startBGM();
+    stopBGM();
   }
 
   function confirmItemPrompt(){
@@ -2686,19 +2683,31 @@ function drawParticles(){
   function forceInitialCharacterLayout(){
     renderShieldStatus();
     elWho.textContent=getChar().name;
+    if(startUI.style.display!=="none" || shopUI.style.display!=="none"){
+      renderCharGrid();
+      renderShop();
+      renderStartItems();
+    }
   }
 
-  [subinImg,seongbinImg,jetImg,voltImg,sammyImg,lucyImg,maxImg,doniImg,dizzyImg,jeromeImg,paulImg,customSheetImg].forEach(img=>{
+  [subinImg,seongbinImg,jetImg,voltImg,sammyImg,lucyImg,maxImg,doniImg,dizzyImg,jeromeImg,paulImg,mymeloImg,kuromiImg,kittyImg,purinImg,customSheetImg].forEach(img=>{
     if(!img) return;
     img.addEventListener('load', ()=>{
       forceInitialCharacterLayout();
       lazyBootUI();
+      requestAnimationFrame(forceInitialCharacterLayout);
     });
   });
 
   window.addEventListener('load', ()=>{
     forceInitialCharacterLayout();
+    setTimeout(forceInitialCharacterLayout, 30);
+    setTimeout(forceInitialCharacterLayout, 180);
     setTimeout(lazyBootUI, 30);
+  });
+  window.addEventListener('pageshow', ()=>{
+    forceInitialCharacterLayout();
+    setTimeout(forceInitialCharacterLayout, 60);
   });
   window.addEventListener('resize', ()=>{
     if(startUI.style.display!=="none" || shopUI.style.display!=="none") forceInitialCharacterLayout();
