@@ -653,6 +653,9 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   }
   function startBGM(){
     ensureAudio();
+    if(audio.ctx && audio.ctx.state==='suspended'){
+      audio.ctx.resume().catch(()=>{});
+    }
     if(audio.started) return;
     audio.started=true;
     const tempo=144;
@@ -1463,7 +1466,7 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
       d.innerHTML=`
         ${isUnlocked?'<div class="stateTag unlocked">보유중</div>':'<div class="stateTag lockedState">잠금</div>'}
         ${c.id===selectedCharId?'<div class="stateTag selected">선택중</div>':''}
-        <div class="chipWrap"><canvas class="chipCanvas" data-char-id="${c.id}"></canvas></div>
+        <div class="chipWrap"><canvas class="chipCanvas"></canvas></div>
         <div class="charInfo"><div class="cname">${c.name}</div><div class="ctag">${c.tag}</div></div>
         <div class="priceTag">${c.id==='volt'&&!isUnlocked?'🎁 100계단':''}${c.id==='sammy'&&!isUnlocked?'🎁 200계단':''}${c.id==='lucy'&&!isUnlocked?'🎁 300계단':''}${c.id==='max'&&!isUnlocked?'🎁 400계단':''}${c.price>0?`🔒 ${c.price}🪙`:''}</div>`;
       drawCharThumb(d.querySelector('canvas'), c);
@@ -2573,7 +2576,7 @@ function drawParticles(){
     renderStartItems();
     setOverlay(itemPromptUI);
     focus();
-    stopBGM();
+    if(!audio.muted && !audio.started) startBGM();
   }
 
   function confirmItemPrompt(){
@@ -2685,52 +2688,24 @@ function drawParticles(){
     elWho.textContent=getChar().name;
   }
 
-  function queueCharacterUiRefresh(){
-    requestAnimationFrame(()=>{
-      requestAnimationFrame(()=>{
-        try{
-          if(startUI.style.display!=="none") renderCharGrid();
-          if(shopUI.style.display!=="none") renderShop();
-          forceInitialCharacterLayout();
-        }catch(e){
-          console.warn(e);
-        }
-      });
-    });
-  }
-
-  [subinImg,seongbinImg,jetImg,voltImg,sammyImg,lucyImg,maxImg,doniImg,dizzyImg,jeromeImg,paulImg,mymeloImg,kuromiImg,kittyImg,purinImg,customSheetImg].forEach(img=>{
+  [subinImg,seongbinImg,jetImg,voltImg,sammyImg,lucyImg,maxImg,doniImg,dizzyImg,jeromeImg,paulImg,customSheetImg].forEach(img=>{
     if(!img) return;
-    try{ img.decoding='async'; }catch(e){}
-    if(img.complete){
-      queueCharacterUiRefresh();
-      return;
-    }
     img.addEventListener('load', ()=>{
-      queueCharacterUiRefresh();
+      forceInitialCharacterLayout();
       lazyBootUI();
-    });
-    img.addEventListener('error', ()=>{
-      queueCharacterUiRefresh();
     });
   });
 
   window.addEventListener('load', ()=>{
-    queueCharacterUiRefresh();
+    forceInitialCharacterLayout();
     setTimeout(lazyBootUI, 30);
-    setTimeout(queueCharacterUiRefresh, 120);
-  });
-  window.addEventListener('pageshow', ()=>{
-    queueCharacterUiRefresh();
   });
   window.addEventListener('resize', ()=>{
-    if(startUI.style.display!=="none" || shopUI.style.display!=="none") queueCharacterUiRefresh();
+    if(startUI.style.display!=="none" || shopUI.style.display!=="none") forceInitialCharacterLayout();
   });
 
   // init
   forceInitialCharacterLayout();
-  refreshCharacterUI({full:true});
-  queueCharacterUiRefresh();
   resetRun(0);
   updateElevatorButtons();
   running=false;
