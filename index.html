@@ -322,6 +322,7 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
         <div class="shopSectionTabs">
           <button id="btnShopTabItems" class="shopTabBtn active">아이템 상점</button>
           <button id="btnShopTabChars" class="shopTabBtn">캐릭터 상점</button>
+          <button id="btnShopTabUpgrades" class="shopTabBtn">업그레이드 상점</button>
         </div>
         <div id="shopSectionHint" class="shopSectionHint">보호막, 엘리베이터, 코인 2배를 구매할 수 있어.</div>
         <div class="shopSecretRow" style="display:none"></div>
@@ -552,6 +553,7 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   const btnOverShop=document.getElementById('btnOverShop');
   const btnShopTabItems=document.getElementById('btnShopTabItems');
   const btnShopTabChars=document.getElementById('btnShopTabChars');
+  const btnShopTabUpgrades=document.getElementById('btnShopTabUpgrades');
   const shopSectionHint=document.getElementById('shopSectionHint');
   const shopSubText=document.getElementById('shopSubText');
 
@@ -653,9 +655,6 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   }
   function startBGM(){
     ensureAudio();
-    if(audio.ctx && audio.ctx.state==='suspended'){
-      audio.ctx.resume().catch(()=>{});
-    }
     if(audio.started) return;
     audio.started=true;
     const tempo=144;
@@ -807,6 +806,7 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   const LS_COIN2X='tower_coin2x_ticket_v1';
   const LS_THEME_OWNED='tower_theme_owned_v1';
   const LS_THEME_SELECTED='tower_theme_selected_v1';
+  const LS_COIN_UPGRADE='tower_coin_upgrade_v1';
   const LS_UNLOCK='tower_unlock_v7_all_relocked';
   const LS_CHAR='tower_char_v7';
   const LS_UNLOCK_RESET_MARK='tower_unlock_reset_done_v2';
@@ -826,30 +826,17 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   let ownedThemes=(()=>{
     try{
       const raw=JSON.parse(localStorage.getItem(LS_THEME_OWNED)||'{}')||{};
-      return {
-        basic:true,
-        day_sky:!!raw.day_sky,
-        night_sky:!!raw.night_sky,
-        forest:!!raw.forest,
-        space:!!raw.space,
-        winter:!!raw.winter,
-        desert:!!raw.desert
-      };
+      return {basic:true, night:!!raw.night};
     }catch(e){
-      return {
-        basic:true,
-        day_sky:false,
-        night_sky:false,
-        forest:false,
-        space:false,
-        winter:false,
-        desert:false
-      };
+      return {basic:true, night:false};
     }
   })();
   let selectedTheme=(localStorage.getItem(LS_THEME_SELECTED)||'basic');
   if(!ownedThemes[selectedTheme]) selectedTheme='basic';
   let shopSection='items';
+  let coinUpgradeLevel=Math.max(0,Math.min(5,Number(localStorage.getItem(LS_COIN_UPGRADE)||0)));
+  const COIN_UPGRADE_PRICES=[200,400,700,1000,1500];
+  const COIN_UPGRADE_CHANCES=[0,0.20,0.40,0.60,0.80,1.00];
   let selectedShieldUse=false;
   let selectedElevatorUse=0;
   let pendingShieldUse=false;
@@ -890,6 +877,13 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   function setCoin2xTickets(v){
     coin2xTickets=Math.max(0,Math.floor(v));
     localStorage.setItem(LS_COIN2X,String(coin2xTickets));
+  }
+  function setCoinUpgradeLevel(v){
+    coinUpgradeLevel=Math.max(0,Math.min(5,Math.floor(v)));
+    localStorage.setItem(LS_COIN_UPGRADE,String(coinUpgradeLevel));
+  }
+  function getCoinUpgradeChance(level=coinUpgradeLevel){
+    return COIN_UPGRADE_CHANCES[Math.max(0,Math.min(5,level))] || 0;
   }
   function saveOwnedThemes(){
     localStorage.setItem(LS_THEME_OWNED, JSON.stringify(ownedThemes));
@@ -1482,7 +1476,7 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
       d.innerHTML=`
         ${isUnlocked?'<div class="stateTag unlocked">보유중</div>':'<div class="stateTag lockedState">잠금</div>'}
         ${c.id===selectedCharId?'<div class="stateTag selected">선택중</div>':''}
-        <div class="chipWrap"><canvas class="chipCanvas"></canvas></div>
+        <div class="chipWrap"><canvas class="chipCanvas" data-char-id="${c.id}"></canvas></div>
         <div class="charInfo"><div class="cname">${c.name}</div><div class="ctag">${c.tag}</div></div>
         <div class="priceTag">${c.id==='volt'&&!isUnlocked?'🎁 100계단':''}${c.id==='sammy'&&!isUnlocked?'🎁 200계단':''}${c.id==='lucy'&&!isUnlocked?'🎁 300계단':''}${c.id==='max'&&!isUnlocked?'🎁 400계단':''}${c.price>0?`🔒 ${c.price}🪙`:''}</div>`;
       drawCharThumb(d.querySelector('canvas'), c);
@@ -1525,12 +1519,17 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
     shopList.className = 'shopList ' + (shopSection==='items' ? 'shopListTriple' : 'shopListChars');
     btnShopTabItems.classList.toggle('active', shopSection==='items');
     btnShopTabChars.classList.toggle('active', shopSection==='chars');
-    shopSectionHint.textContent = shopSection==='items'
-      ? '보호막, 엘리베이터, 코인 2배를 구매할 수 있어.'
-      : '새 캐릭터를 구매하고 바로 선택할 수 있어.';
-    shopSubText.innerHTML = shopSection==='items'
-      ? '코인으로 필요한 <b>아이템</b>을 사두고 시작 전에 골라보자!'
-      : '코인으로 새로운 <b>캐릭터</b>를 구매해보자!';
+    btnShopTabUpgrades.classList.toggle('active', shopSection==='upgrades');
+    if(shopSection==='items'){
+      shopSectionHint.textContent='보호막, 엘리베이터, 코인 2배를 구매할 수 있어.';
+      shopSubText.innerHTML='코인으로 필요한 <b>아이템</b>을 사두고 시작 전에 골라보자!';
+    }else if(shopSection==='chars'){
+      shopSectionHint.textContent='새 캐릭터를 구매하고 바로 선택할 수 있어.';
+      shopSubText.innerHTML='코인으로 새로운 <b>캐릭터</b>를 구매해보자!';
+    }else{
+      shopSectionHint.textContent='코인 업그레이드는 한 번 사면 계속 적용돼.';
+      shopSubText.innerHTML='코인 먹을 때 <b>추가 코인</b>이 붙는 영구 업그레이드야!';
+    }
 
     if(shopSection==='items'){
       const shieldRow=document.createElement('div');
@@ -1561,53 +1560,43 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
       coin2xRow.querySelector('button[data-buy-coin2x]').addEventListener('click',buyCoin2xTicket);
       shopList.appendChild(coin2xRow);
 
-      const themeDefs=[
-        {id:'basic', icon:'🌤️', name:'기본 배경', desc:'무료 기본 배경', price:0},
-        {id:'day_sky', icon:'☀️', name:'낮하늘 배경', desc:'맑고 밝은 파란 하늘', price:300},
-        {id:'night_sky', icon:'🌙', name:'밤하늘 배경', desc:'달과 별이 반짝이는 밤하늘', price:300},
-        {id:'forest', icon:'🌲', name:'숲 배경', desc:'푸른 숲과 자연 풍경', price:300},
-        {id:'space', icon:'🌌', name:'우주 배경', desc:'신비로운 별빛 우주', price:300},
-        {id:'winter', icon:'❄️', name:'겨울 배경', desc:'눈 내리는 겨울 풍경', price:300},
-        {id:'desert', icon:'🏜️', name:'사막 배경', desc:'따뜻한 모래 사막 풍경', price:300}
-      ];
+      const basicTheme=document.createElement('div');
+      basicTheme.className='shopItem';
+      basicTheme.innerHTML=itemCardHtml('🌤️','기본 배경',`${selectedTheme==='basic' ? '현재 사용 중' : '무료 기본 배경'}`,0,`<button data-apply-theme="basic" class="primary" style="padding:10px 12px;border-radius:14px;width:100%">${selectedTheme==='basic'?'사용중':'적용'}</button>`);
+      basicTheme.querySelector('button[data-apply-theme="basic"]').addEventListener('click',()=>applyTheme('basic'));
+      shopList.appendChild(basicTheme);
 
-      themeDefs.forEach(theme=>{
-        const owned=!!ownedThemes[theme.id];
-        const row=document.createElement('div');
-        row.className='shopItem';
+      const nightOwned=!!ownedThemes.night;
+      const nightTheme=document.createElement('div');
+      nightTheme.className='shopItem';
+      if(!nightOwned){
+        nightTheme.innerHTML=itemCardHtml('🌙','밤하늘 배경',`달과 별이 보이는 밤하늘`,300,`<button data-buy-theme="night" class="primary" style="padding:10px 12px;border-radius:14px;width:100%" ${wallet<300?'disabled':''}>${wallet>=300?'구매':'코인 부족'}</button>`);
+        nightTheme.querySelector('button[data-buy-theme="night"]').addEventListener('click',()=>buyTheme('night'));
+      }else{
+        nightTheme.innerHTML=itemCardHtml('🌙','밤하늘 배경',`${selectedTheme==='night' ? '현재 사용 중' : '구매 완료 · 달과 별 배경'}`,300,`<button data-apply-theme="night" class="primary" style="padding:10px 12px;border-radius:14px;width:100%">${selectedTheme==='night'?'사용중':'적용'}</button>`);
+        nightTheme.querySelector('button[data-apply-theme="night"]').addEventListener('click',()=>applyTheme('night'));
+      }
+      shopList.appendChild(nightTheme);
+      return;
+    }
 
-        if(theme.id==='basic'){
-          row.innerHTML=itemCardHtml(
-            theme.icon,
-            theme.name,
-            selectedTheme==='basic' ? '현재 사용 중' : theme.desc,
-            theme.price,
-            `<button data-apply-theme="${theme.id}" class="primary" style="padding:10px 12px;border-radius:14px;width:100%">${selectedTheme==='basic'?'사용중':'적용'}</button>`
-          );
-          row.querySelector(`[data-apply-theme="${theme.id}"]`).addEventListener('click',()=>applyTheme(theme.id));
-        }else if(!owned){
-          row.innerHTML=itemCardHtml(
-            theme.icon,
-            theme.name,
-            theme.desc,
-            theme.price,
-            `<button data-buy-theme="${theme.id}" class="primary" style="padding:10px 12px;border-radius:14px;width:100%" ${wallet<300?'disabled':''}>${wallet>=300?'구매':'코인 부족'}</button>`
-          );
-          row.querySelector(`[data-buy-theme="${theme.id}"]`).addEventListener('click',()=>buyTheme(theme.id));
-        }else{
-          row.innerHTML=itemCardHtml(
-            theme.icon,
-            theme.name,
-            selectedTheme===theme.id ? '현재 사용 중' : `구매 완료 · ${theme.desc}`,
-            theme.price,
-            `<button data-apply-theme="${theme.id}" class="primary" style="padding:10px 12px;border-radius:14px;width:100%">${selectedTheme===theme.id?'사용중':'적용'}</button>`
-          );
-          row.querySelector(`[data-apply-theme="${theme.id}"]`).addEventListener('click',()=>applyTheme(theme.id));
-        }
-
-        shopList.appendChild(row);
-      });
-
+    if(shopSection==='upgrades'){
+      const nextLevel=coinUpgradeLevel+1;
+      const maxed=coinUpgradeLevel>=5;
+      const currentChance=Math.round(getCoinUpgradeChance(coinUpgradeLevel)*100);
+      const nextChance=Math.round(getCoinUpgradeChance(Math.min(5,nextLevel))*100);
+      const price=maxed?0:COIN_UPGRADE_PRICES[coinUpgradeLevel];
+      const row=document.createElement('div');
+      row.className='shopItem';
+      row.innerHTML=itemCardHtml('🪙','코인 업그레이드',
+        maxed
+          ? `현재 Lv.${coinUpgradeLevel}<br>코인 먹을 때 항상 +1 추가`
+          : `현재 Lv.${coinUpgradeLevel} · 추가 코인 확률 ${currentChance}%<br>다음 Lv.${nextLevel} · ${nextChance}% 확률로 +1`,
+        price,
+        `<button data-buy-upgrade="coin" class="primary" style="padding:10px 12px;border-radius:14px;width:100%" ${maxed||wallet<price?'disabled':''}>${maxed?'최대 레벨':(wallet>=price?`Lv.${nextLevel} 구매`:'코인 부족')}</button>`
+      );
+      row.querySelector('button[data-buy-upgrade="coin"]').addEventListener('click',buyCoinUpgrade);
+      shopList.appendChild(row);
       return;
     }
 
@@ -1744,29 +1733,25 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
     renderStartItems();
   }
 
-  function getThemeLabel(id){
-    const map={
-      basic:'기본 배경',
-      day_sky:'낮하늘 배경',
-      night_sky:'밤하늘 배경',
-      forest:'숲 배경',
-      space:'우주 배경',
-      winter:'겨울 배경',
-      desert:'사막 배경'
-    };
-    return map[id] || '배경';
+  function buyCoinUpgrade(){
+    if(coinUpgradeLevel>=5){ toast('코인 업그레이드 최대 레벨!'); return; }
+    const price=COIN_UPGRADE_PRICES[coinUpgradeLevel];
+    if(wallet<price){ toast('코인이 부족해! 🪙'); return; }
+    setWallet(wallet-price);
+    setCoinUpgradeLevel(coinUpgradeLevel+1);
+    renderShop();
+    toast(`코인 업그레이드 Lv.${coinUpgradeLevel} 완료!`);
   }
 
   function buyTheme(id){
-    if(!ownedThemes.hasOwnProperty(id)) return;
-    if(id==='basic'){ applyTheme('basic'); return; }
+    if(id!=='night') return;
     if(ownedThemes[id]){ applyTheme(id); return; }
     if(wallet<300){ toast('코인이 부족해! 🪙'); return; }
     setWallet(wallet-300);
     unlockTheme(id);
     setSelectedTheme(id);
     renderShop();
-    toast(`${getThemeLabel(id)} 구매 완료!`);
+    toast('밤하늘 배경 구매 완료!');
   }
 
   function applyTheme(id){
@@ -2055,7 +2040,11 @@ function drawParticles(){
     const p=screenFromGrid(player.gx,player.gy);
 
     if(st && st.coin){
-      st.coin=false; runCoins += activeCoin2x ? 2 : 1;
+      st.coin=false;
+      let gained = activeCoin2x ? 2 : 1;
+      if(Math.random() < getCoinUpgradeChance()) gained += 1;
+      runCoins += gained;
+      if(gained>1) toast(`코인 +${gained}`);
       if(getChar().id==='subin'){
         spawnHeartBurst(p.x, p.y - TILE*0.18, 'rgba(255,160,210,0.95)', 14);
       }else if(getChar().id==='seongbin'){
@@ -2142,23 +2131,6 @@ function drawParticles(){
     const g=ctx.createRadialGradient(x,y,0,x,y,r);
     g.addColorStop(0,color); g.addColorStop(1,'rgba(0,0,0,0)');
     ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
-  }
-
-  function drawThemeImageContained(img,w,h){
-    if(!img || !img.complete || !img.naturalWidth || !img.naturalHeight) return false;
-    const iw=img.naturalWidth, ih=img.naturalHeight;
-    const scale=Math.max(w/iw, h/ih);
-    const dw=iw*scale, dh=ih*scale;
-    const dx=(w-dw)/2;
-    const dy=(dh>h)?0:((h-dh)/2);
-
-    ctx.fillStyle='rgba(12,16,36,0.18)';
-    ctx.fillRect(0,0,w,h);
-
-    ctx.save();
-    ctx.drawImage(img,dx,dy,dw,dh);
-    ctx.restore();
-    return true;
   }
   function drawStairTile(cx,cy,alpha,skin){
     const x=cx-TILE/2, y=cy-TILE/2;
@@ -2555,42 +2527,35 @@ function drawParticles(){
     const w=WORLD.w(), h=WORLD.h();
     ctx.clearRect(0,0,w,h);
     const tt=(player.gx+player.gy);
-    if(!window.__themeImagesLoaded){
-      window.__themeImagesLoaded=true;
-      window.__themeImages={
-        day_sky:new Image(),
-        night_sky:new Image(),
-        forest:new Image(),
-        space:new Image(),
-        winter:new Image(),
-        desert:new Image()
-      };
-      window.__themeImages.day_sky.src='assets/day_sky.png';
-      window.__themeImages.night_sky.src='assets/night_sky.png';
-      window.__themeImages.forest.src='assets/forest.png';
-      window.__themeImages.space.src='assets/space.png';
-      window.__themeImages.winter.src='assets/winter.png';
-      window.__themeImages.desert.src='assets/desert.png';
-      Object.values(window.__themeImages).forEach(img=>{
-        img.addEventListener('load', ()=>{
-          forceInitialCharacterLayout();
-          lazyBootUI();
-        });
-      });
-    }
-
-    const themeImgs=window.__themeImages||{};
-    const themeImg=themeImgs[selectedTheme];
-
-    if(selectedTheme!=='basic' && themeImg && themeImg.complete){
-      drawThemeImageContained(themeImg,w,h);
-      ctx.fillStyle='rgba(0,0,0,0.06)';
+    if(selectedTheme==='night'){
+      const sky=ctx.createLinearGradient(0,0,0,h);
+      sky.addColorStop(0,'#0f1b56');
+      sky.addColorStop(0.55,'#233d8f');
+      sky.addColorStop(1,'#2f5fbe');
+      ctx.fillStyle=sky;
       ctx.fillRect(0,0,w,h);
-    }else if(selectedTheme==='basic'){
-      drawGlow(w*0.28, h*0.20, 240, 'rgba(110,231,255,0.10)');
-      drawGlow(w*0.78, h*0.38, 280, 'rgba(170,110,255,0.08)');
-      ctx.fillStyle='rgba(255,255,255,0.06)';
-      for(let i=0;i<95;i++){ ctx.fillRect((i*97+tt*13)%w,(i*53+tt*7)%h,2,2); }
+      drawGlow(w*0.22, h*0.18, 200, 'rgba(255,239,160,0.10)');
+      drawGlow(w*0.74, h*0.30, 260, 'rgba(148,111,255,0.12)');
+      ctx.fillStyle='rgba(255,246,176,0.96)';
+      ctx.beginPath();
+      ctx.arc(w*0.18, h*0.17, Math.min(w,h)*0.058, 0, Math.PI*2);
+      ctx.fill();
+      ctx.globalCompositeOperation='destination-out';
+      ctx.beginPath();
+      ctx.arc(w*0.205, h*0.157, Math.min(w,h)*0.052, 0, Math.PI*2);
+      ctx.fill();
+      ctx.globalCompositeOperation='source-over';
+      ctx.fillStyle='rgba(255,255,255,0.82)';
+      for(let i=0;i<72;i++){
+        const x=(i*113+tt*7)%w;
+        const y=(i*67+tt*5)%h;
+        const s=(i%7===0)?3:((i%3===0)?2:1.5);
+        ctx.fillRect(x,y,s,s);
+      }
+      ctx.fillStyle='rgba(177,157,255,0.22)';
+      for(const [cx,cy,r] of [[w*0.16,h*0.27,56],[w*0.82,h*0.23,62],[w*0.13,h*0.70,64],[w*0.88,h*0.77,72]]){
+        ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill();
+      }
     }else{
       drawGlow(w*0.28, h*0.20, 240, 'rgba(110,231,255,0.10)');
       drawGlow(w*0.78, h*0.38, 280, 'rgba(170,110,255,0.08)');
@@ -2644,6 +2609,7 @@ function drawParticles(){
   btnShop.addEventListener('click',()=>openShop());
   btnShopTabItems.addEventListener('click',()=>{ registerSecretDir('L'); shopSection='items'; renderShop(); });
   btnShopTabChars.addEventListener('click',()=>{ registerSecretDir('R'); shopSection='chars'; renderShop(); });
+  btnShopTabUpgrades.addEventListener('click',()=>{ shopSection='upgrades'; renderShop(); });
   btnShopBack.addEventListener('click',()=>{ stopBGM(); resetSecretSequence(); forceInitialCharacterLayout(); setOverlay(startUI); focus(); });
   if(btnShopBackTop) btnShopBackTop.addEventListener('click',()=>{ stopBGM(); resetSecretSequence(); forceInitialCharacterLayout(); setOverlay(startUI); focus(); });
   if(btnShopReset) btnShopReset.addEventListener('click',()=>{ try{ resetProgress(); }catch(e){ console.warn(e); } });
@@ -2652,7 +2618,6 @@ function drawParticles(){
   function startGame(){
     bootLocked=false;
     activeCoin2x=false;
-    stopBGM();
     resetRun(0, false);
     pendingShieldUse=false;
     pendingElevatorUse=0;
@@ -2661,6 +2626,7 @@ function drawParticles(){
     renderStartItems();
     setOverlay(itemPromptUI);
     focus();
+    stopBGM();
   }
 
   function confirmItemPrompt(){
@@ -2738,12 +2704,6 @@ function drawParticles(){
     if(useCoin2x){
       toast('코인 2배 적용!');
     }
-
-    ensureAudio();
-    if(audio.ctx && audio.ctx.state==='suspended'){
-      audio.ctx.resume().catch(()=>{});
-    }
-
     if(!audio.started) startBGM();
     move(dir);
     return true;
@@ -2776,45 +2736,54 @@ function drawParticles(){
   function forceInitialCharacterLayout(){
     renderShieldStatus();
     elWho.textContent=getChar().name;
-    if(startUI.style.display!=="none"){
-      renderCharGrid();
-      renderStartItems();
-    }
-    if(shopUI.style.display!=="none"){
-      renderShop();
-    }
-    requestAnimationFrame(()=>{
-      if(startUI.style.display!=="none") renderCharGrid();
-      if(shopUI.style.display!=="none") renderShop();
-    });
-    setTimeout(()=>{
-      if(startUI.style.display!=="none") renderCharGrid();
-      if(shopUI.style.display!=="none") renderShop();
-    },120);
-    setTimeout(()=>{
-      if(startUI.style.display!=="none") renderCharGrid();
-      if(shopUI.style.display!=="none") renderShop();
-    },360);
   }
 
-  [subinImg,seongbinImg,jetImg,voltImg,sammyImg,lucyImg,maxImg,doniImg,dizzyImg,jeromeImg,paulImg,customSheetImg].forEach(img=>{
+  function queueCharacterUiRefresh(){
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        try{
+          if(startUI.style.display!=="none") renderCharGrid();
+          if(shopUI.style.display!=="none") renderShop();
+          forceInitialCharacterLayout();
+        }catch(e){
+          console.warn(e);
+        }
+      });
+    });
+  }
+
+  [subinImg,seongbinImg,jetImg,voltImg,sammyImg,lucyImg,maxImg,doniImg,dizzyImg,jeromeImg,paulImg,mymeloImg,kuromiImg,kittyImg,purinImg,customSheetImg].forEach(img=>{
     if(!img) return;
+    try{ img.decoding='async'; }catch(e){}
+    if(img.complete){
+      queueCharacterUiRefresh();
+      return;
+    }
     img.addEventListener('load', ()=>{
-      forceInitialCharacterLayout();
+      queueCharacterUiRefresh();
       lazyBootUI();
+    });
+    img.addEventListener('error', ()=>{
+      queueCharacterUiRefresh();
     });
   });
 
   window.addEventListener('load', ()=>{
-    forceInitialCharacterLayout();
+    queueCharacterUiRefresh();
     setTimeout(lazyBootUI, 30);
+    setTimeout(queueCharacterUiRefresh, 120);
+  });
+  window.addEventListener('pageshow', ()=>{
+    queueCharacterUiRefresh();
   });
   window.addEventListener('resize', ()=>{
-    if(startUI.style.display!=="none" || shopUI.style.display!=="none") forceInitialCharacterLayout();
+    if(startUI.style.display!=="none" || shopUI.style.display!=="none") queueCharacterUiRefresh();
   });
 
   // init
   forceInitialCharacterLayout();
+  refreshCharacterUI({full:true});
+  queueCharacterUiRefresh();
   resetRun(0);
   updateElevatorButtons();
   running=false;
