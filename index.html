@@ -653,6 +653,9 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   }
   function startBGM(){
     ensureAudio();
+    if(audio.ctx && audio.ctx.state==='suspended'){
+      audio.ctx.resume().catch(()=>{});
+    }
     if(audio.started) return;
     audio.started=true;
     const tempo=144;
@@ -752,10 +755,7 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   }
 
   function userGesture(){
-    ensureAudio();
-    if(audio.ctx && audio.ctx.state==='suspended'){
-      audio.ctx.resume().catch(()=>{});
-    }
+    startBGM();
     box.removeEventListener('pointerdown',userGesture);
     window.removeEventListener('keydown',userGesture);
   }
@@ -826,9 +826,25 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   let ownedThemes=(()=>{
     try{
       const raw=JSON.parse(localStorage.getItem(LS_THEME_OWNED)||'{}')||{};
-      return {basic:true, night:!!raw.night};
+      return {
+        basic:true,
+        day_sky:!!raw.day_sky,
+        night_sky:!!raw.night_sky,
+        forest:!!raw.forest,
+        space:!!raw.space,
+        winter:!!raw.winter,
+        desert:!!raw.desert
+      };
     }catch(e){
-      return {basic:true, night:false};
+      return {
+        basic:true,
+        day_sky:false,
+        night_sky:false,
+        forest:false,
+        space:false,
+        winter:false,
+        desert:false
+      };
     }
   })();
   let selectedTheme=(localStorage.getItem(LS_THEME_SELECTED)||'basic');
@@ -1545,23 +1561,53 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
       coin2xRow.querySelector('button[data-buy-coin2x]').addEventListener('click',buyCoin2xTicket);
       shopList.appendChild(coin2xRow);
 
-      const basicTheme=document.createElement('div');
-      basicTheme.className='shopItem';
-      basicTheme.innerHTML=itemCardHtml('🌤️','기본 배경',`${selectedTheme==='basic' ? '현재 사용 중' : '무료 기본 배경'}`,0,`<button data-apply-theme="basic" class="primary" style="padding:10px 12px;border-radius:14px;width:100%">${selectedTheme==='basic'?'사용중':'적용'}</button>`);
-      basicTheme.querySelector('button[data-apply-theme="basic"]').addEventListener('click',()=>applyTheme('basic'));
-      shopList.appendChild(basicTheme);
+      const themeDefs=[
+        {id:'basic', icon:'🌤️', name:'기본 배경', desc:'무료 기본 배경', price:0},
+        {id:'day_sky', icon:'☀️', name:'낮하늘 배경', desc:'맑고 밝은 파란 하늘', price:300},
+        {id:'night_sky', icon:'🌙', name:'밤하늘 배경', desc:'달과 별이 반짝이는 밤하늘', price:300},
+        {id:'forest', icon:'🌲', name:'숲 배경', desc:'푸른 숲과 자연 풍경', price:300},
+        {id:'space', icon:'🌌', name:'우주 배경', desc:'신비로운 별빛 우주', price:300},
+        {id:'winter', icon:'❄️', name:'겨울 배경', desc:'눈 내리는 겨울 풍경', price:300},
+        {id:'desert', icon:'🏜️', name:'사막 배경', desc:'따뜻한 모래 사막 풍경', price:300}
+      ];
 
-      const nightOwned=!!ownedThemes.night;
-      const nightTheme=document.createElement('div');
-      nightTheme.className='shopItem';
-      if(!nightOwned){
-        nightTheme.innerHTML=itemCardHtml('🌙','밤하늘 배경',`달과 별이 보이는 밤하늘`,300,`<button data-buy-theme="night" class="primary" style="padding:10px 12px;border-radius:14px;width:100%" ${wallet<300?'disabled':''}>${wallet>=300?'구매':'코인 부족'}</button>`);
-        nightTheme.querySelector('button[data-buy-theme="night"]').addEventListener('click',()=>buyTheme('night'));
-      }else{
-        nightTheme.innerHTML=itemCardHtml('🌙','밤하늘 배경',`${selectedTheme==='night' ? '현재 사용 중' : '구매 완료 · 달과 별 배경'}`,300,`<button data-apply-theme="night" class="primary" style="padding:10px 12px;border-radius:14px;width:100%">${selectedTheme==='night'?'사용중':'적용'}</button>`);
-        nightTheme.querySelector('button[data-apply-theme="night"]').addEventListener('click',()=>applyTheme('night'));
-      }
-      shopList.appendChild(nightTheme);
+      themeDefs.forEach(theme=>{
+        const owned=!!ownedThemes[theme.id];
+        const row=document.createElement('div');
+        row.className='shopItem';
+
+        if(theme.id==='basic'){
+          row.innerHTML=itemCardHtml(
+            theme.icon,
+            theme.name,
+            selectedTheme==='basic' ? '현재 사용 중' : theme.desc,
+            theme.price,
+            `<button data-apply-theme="${theme.id}" class="primary" style="padding:10px 12px;border-radius:14px;width:100%">${selectedTheme==='basic'?'사용중':'적용'}</button>`
+          );
+          row.querySelector(`[data-apply-theme="${theme.id}"]`).addEventListener('click',()=>applyTheme(theme.id));
+        }else if(!owned){
+          row.innerHTML=itemCardHtml(
+            theme.icon,
+            theme.name,
+            theme.desc,
+            theme.price,
+            `<button data-buy-theme="${theme.id}" class="primary" style="padding:10px 12px;border-radius:14px;width:100%" ${wallet<300?'disabled':''}>${wallet>=300?'구매':'코인 부족'}</button>`
+          );
+          row.querySelector(`[data-buy-theme="${theme.id}"]`).addEventListener('click',()=>buyTheme(theme.id));
+        }else{
+          row.innerHTML=itemCardHtml(
+            theme.icon,
+            theme.name,
+            selectedTheme===theme.id ? '현재 사용 중' : `구매 완료 · ${theme.desc}`,
+            theme.price,
+            `<button data-apply-theme="${theme.id}" class="primary" style="padding:10px 12px;border-radius:14px;width:100%">${selectedTheme===theme.id?'사용중':'적용'}</button>`
+          );
+          row.querySelector(`[data-apply-theme="${theme.id}"]`).addEventListener('click',()=>applyTheme(theme.id));
+        }
+
+        shopList.appendChild(row);
+      });
+
       return;
     }
 
@@ -1698,15 +1744,29 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
     renderStartItems();
   }
 
+  function getThemeLabel(id){
+    const map={
+      basic:'기본 배경',
+      day_sky:'낮하늘 배경',
+      night_sky:'밤하늘 배경',
+      forest:'숲 배경',
+      space:'우주 배경',
+      winter:'겨울 배경',
+      desert:'사막 배경'
+    };
+    return map[id] || '배경';
+  }
+
   function buyTheme(id){
-    if(id!=='night') return;
+    if(!ownedThemes.hasOwnProperty(id)) return;
+    if(id==='basic'){ applyTheme('basic'); return; }
     if(ownedThemes[id]){ applyTheme(id); return; }
     if(wallet<300){ toast('코인이 부족해! 🪙'); return; }
     setWallet(wallet-300);
     unlockTheme(id);
     setSelectedTheme(id);
     renderShop();
-    toast('밤하늘 배경 구매 완료!');
+    toast(`${getThemeLabel(id)} 구매 완료!`);
   }
 
   function applyTheme(id){
@@ -2478,35 +2538,36 @@ function drawParticles(){
     const w=WORLD.w(), h=WORLD.h();
     ctx.clearRect(0,0,w,h);
     const tt=(player.gx+player.gy);
-    if(selectedTheme==='night'){
-      const sky=ctx.createLinearGradient(0,0,0,h);
-      sky.addColorStop(0,'#0f1b56');
-      sky.addColorStop(0.55,'#233d8f');
-      sky.addColorStop(1,'#2f5fbe');
-      ctx.fillStyle=sky;
+    if(!window.__themeImagesLoaded){
+      window.__themeImagesLoaded=true;
+      window.__themeImages={
+        day_sky:new Image(),
+        night_sky:new Image(),
+        forest:new Image(),
+        space:new Image(),
+        winter:new Image(),
+        desert:new Image()
+      };
+      window.__themeImages.day_sky.src='assets/day_sky.png';
+      window.__themeImages.night_sky.src='assets/night_sky.png';
+      window.__themeImages.forest.src='assets/forest.png';
+      window.__themeImages.space.src='assets/space.png';
+      window.__themeImages.winter.src='assets/winter.png';
+      window.__themeImages.desert.src='assets/desert.png';
+    }
+
+    const themeImgs=window.__themeImages||{};
+    const themeImg=themeImgs[selectedTheme];
+
+    if(selectedTheme!=='basic' && themeImg && themeImg.complete){
+      ctx.drawImage(themeImg,0,0,w,h);
+      ctx.fillStyle='rgba(0,0,0,0.10)';
       ctx.fillRect(0,0,w,h);
-      drawGlow(w*0.22, h*0.18, 200, 'rgba(255,239,160,0.10)');
-      drawGlow(w*0.74, h*0.30, 260, 'rgba(148,111,255,0.12)');
-      ctx.fillStyle='rgba(255,246,176,0.96)';
-      ctx.beginPath();
-      ctx.arc(w*0.18, h*0.17, Math.min(w,h)*0.058, 0, Math.PI*2);
-      ctx.fill();
-      ctx.globalCompositeOperation='destination-out';
-      ctx.beginPath();
-      ctx.arc(w*0.205, h*0.157, Math.min(w,h)*0.052, 0, Math.PI*2);
-      ctx.fill();
-      ctx.globalCompositeOperation='source-over';
-      ctx.fillStyle='rgba(255,255,255,0.82)';
-      for(let i=0;i<72;i++){
-        const x=(i*113+tt*7)%w;
-        const y=(i*67+tt*5)%h;
-        const s=(i%7===0)?3:((i%3===0)?2:1.5);
-        ctx.fillRect(x,y,s,s);
-      }
-      ctx.fillStyle='rgba(177,157,255,0.22)';
-      for(const [cx,cy,r] of [[w*0.16,h*0.27,56],[w*0.82,h*0.23,62],[w*0.13,h*0.70,64],[w*0.88,h*0.77,72]]){
-        ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill();
-      }
+    }else if(selectedTheme==='basic'){
+      drawGlow(w*0.28, h*0.20, 240, 'rgba(110,231,255,0.10)');
+      drawGlow(w*0.78, h*0.38, 280, 'rgba(170,110,255,0.08)');
+      ctx.fillStyle='rgba(255,255,255,0.06)';
+      for(let i=0;i<95;i++){ ctx.fillRect((i*97+tt*13)%w,(i*53+tt*7)%h,2,2); }
     }else{
       drawGlow(w*0.28, h*0.20, 240, 'rgba(110,231,255,0.10)');
       drawGlow(w*0.78, h*0.38, 280, 'rgba(170,110,255,0.08)');
@@ -2568,6 +2629,7 @@ function drawParticles(){
   function startGame(){
     bootLocked=false;
     activeCoin2x=false;
+    stopBGM();
     resetRun(0, false);
     pendingShieldUse=false;
     pendingElevatorUse=0;
@@ -2576,7 +2638,6 @@ function drawParticles(){
     renderStartItems();
     setOverlay(itemPromptUI);
     focus();
-    stopBGM();
   }
 
   function confirmItemPrompt(){
@@ -2608,11 +2669,6 @@ function drawParticles(){
     pendingElevatorUse=selectedElevatorUse;
     pendingCoin2xUse=!!selectedCoin2xUse;
     setOverlay(null);
-    ensureAudio();
-    if(audio.ctx && audio.ctx.state==='suspended'){
-      audio.ctx.resume().catch(()=>{});
-    }
-    if(!audio.started) startBGM();
     awaitingFirstInput=true;
     running=false;
     paused=false;
@@ -2691,13 +2747,6 @@ function drawParticles(){
   function forceInitialCharacterLayout(){
     renderShieldStatus();
     elWho.textContent=getChar().name;
-    if(startUI.style.display!=="none"){
-      renderCharGrid();
-      renderStartItems();
-    }
-    if(shopUI.style.display!=="none"){
-      renderShop();
-    }
   }
 
   [subinImg,seongbinImg,jetImg,voltImg,sammyImg,lucyImg,maxImg,doniImg,dizzyImg,jeromeImg,paulImg,customSheetImg].forEach(img=>{
@@ -2709,10 +2758,6 @@ function drawParticles(){
   });
 
   window.addEventListener('load', ()=>{
-    forceInitialCharacterLayout();
-    setTimeout(lazyBootUI, 30);
-  });
-  window.addEventListener('pageshow', ()=>{
     forceInitialCharacterLayout();
     setTimeout(lazyBootUI, 30);
   });
