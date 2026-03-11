@@ -2143,6 +2143,33 @@ function drawParticles(){
     g.addColorStop(0,color); g.addColorStop(1,'rgba(0,0,0,0)');
     ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
   }
+
+  function drawThemeImageContained(img,w,h){
+    if(!img || !img.complete || !img.naturalWidth || !img.naturalHeight) return false;
+    const iw=img.naturalWidth, ih=img.naturalHeight;
+    const scale=Math.min(w/iw, h/ih);
+    const dw=iw*scale, dh=ih*scale;
+    const dx=(w-dw)/2, dy=(h-dh)/2;
+
+    ctx.fillStyle='rgba(12,16,36,0.55)';
+    ctx.fillRect(0,0,w,h);
+
+    ctx.save();
+    ctx.globalAlpha=0.22;
+    const coverScale=Math.max(w/iw, h/ih);
+    const bdw=iw*coverScale, bdh=ih*coverScale;
+    const bdx=(w-bdw)/2, bdy=(h-bdh)/2;
+    ctx.filter='blur(18px)';
+    ctx.drawImage(img,bdx,bdy,bdw,bdh);
+    ctx.restore();
+
+    ctx.save();
+    ctx.shadowColor='rgba(0,0,0,0.24)';
+    ctx.shadowBlur=24;
+    ctx.drawImage(img,dx,dy,dw,dh);
+    ctx.restore();
+    return true;
+  }
   function drawStairTile(cx,cy,alpha,skin){
     const x=cx-TILE/2, y=cy-TILE/2;
     const palettes=[
@@ -2554,14 +2581,20 @@ function drawParticles(){
       window.__themeImages.space.src='assets/space.png';
       window.__themeImages.winter.src='assets/winter.png';
       window.__themeImages.desert.src='assets/desert.png';
+      Object.values(window.__themeImages).forEach(img=>{
+        img.addEventListener('load', ()=>{
+          forceInitialCharacterLayout();
+          lazyBootUI();
+        });
+      });
     }
 
     const themeImgs=window.__themeImages||{};
     const themeImg=themeImgs[selectedTheme];
 
     if(selectedTheme!=='basic' && themeImg && themeImg.complete){
-      ctx.drawImage(themeImg,0,0,w,h);
-      ctx.fillStyle='rgba(0,0,0,0.10)';
+      drawThemeImageContained(themeImg,w,h);
+      ctx.fillStyle='rgba(0,0,0,0.06)';
       ctx.fillRect(0,0,w,h);
     }else if(selectedTheme==='basic'){
       drawGlow(w*0.28, h*0.20, 240, 'rgba(110,231,255,0.10)');
@@ -2747,6 +2780,25 @@ function drawParticles(){
   function forceInitialCharacterLayout(){
     renderShieldStatus();
     elWho.textContent=getChar().name;
+    if(startUI.style.display!=="none"){
+      renderCharGrid();
+      renderStartItems();
+    }
+    if(shopUI.style.display!=="none"){
+      renderShop();
+    }
+    requestAnimationFrame(()=>{
+      if(startUI.style.display!=="none") renderCharGrid();
+      if(shopUI.style.display!=="none") renderShop();
+    });
+    setTimeout(()=>{
+      if(startUI.style.display!=="none") renderCharGrid();
+      if(shopUI.style.display!=="none") renderShop();
+    },120);
+    setTimeout(()=>{
+      if(startUI.style.display!=="none") renderCharGrid();
+      if(shopUI.style.display!=="none") renderShop();
+    },360);
   }
 
   [subinImg,seongbinImg,jetImg,voltImg,sammyImg,lucyImg,maxImg,doniImg,dizzyImg,jeromeImg,paulImg,customSheetImg].forEach(img=>{
