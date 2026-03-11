@@ -2716,9 +2716,16 @@ function drawParticles(){
   function forceInitialCharacterLayout(){
     renderShieldStatus();
     elWho.textContent=getChar().name;
+    if(startUI.style.display!=="none"){
+      renderCharGrid();
+      renderStartItems();
+    }
+    if(shopUI.style.display!=="none"){
+      renderShop();
+    }
   }
 
-  [subinImg,seongbinImg,jetImg,voltImg,sammyImg,lucyImg,maxImg,doniImg,dizzyImg,jeromeImg,paulImg,customSheetImg].forEach(img=>{
+  [subinImg,seongbinImg,jetImg,voltImg,sammyImg,lucyImg,maxImg,doniImg,dizzyImg,jeromeImg,paulImg,customSheetImg,mymeloImg,kuromiImg,kittyImg,purinImg].forEach(img=>{
     if(!img) return;
     img.addEventListener('load', ()=>{
       forceInitialCharacterLayout();
@@ -2727,6 +2734,10 @@ function drawParticles(){
   });
 
   window.addEventListener('load', ()=>{
+    forceInitialCharacterLayout();
+    setTimeout(lazyBootUI, 30);
+  });
+  window.addEventListener('pageshow', ()=>{
     forceInitialCharacterLayout();
     setTimeout(lazyBootUI, 30);
   });
