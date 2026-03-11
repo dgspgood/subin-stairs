@@ -2748,6 +2748,12 @@ function drawParticles(){
     if(useCoin2x){
       toast('코인 2배 적용!');
     }
+
+    ensureAudio();
+    if(audio.ctx && audio.ctx.state==='suspended'){
+      audio.ctx.resume().catch(()=>{});
+    }
+
     if(!audio.started) startBGM();
     move(dir);
     return true;
