@@ -2683,22 +2683,46 @@ function drawParticles(){
   function forceInitialCharacterLayout(){
     renderShieldStatus();
     elWho.textContent=getChar().name;
+    try{
+      if(startUI.style.display!=="none"){
+        renderCharGrid();
+        renderStartItems();
+      }
+      if(shopUI.style.display!=="none"){
+        renderShop();
+      }
+    }catch(e){ console.warn(e); }
   }
 
-  [subinImg,seongbinImg,jetImg,voltImg,sammyImg,lucyImg,maxImg,doniImg,dizzyImg,jeromeImg,paulImg,customSheetImg].forEach(img=>{
+  [subinImg,seongbinImg,jetImg,voltImg,sammyImg,lucyImg,maxImg,doniImg,dizzyImg,jeromeImg,paulImg,customSheetImg,mymeloImg,kuromiImg,kittyImg,purinImg].forEach(img=>{
     if(!img) return;
     img.addEventListener('load', ()=>{
       forceInitialCharacterLayout();
+      setTimeout(forceInitialCharacterLayout, 0);
+      setTimeout(forceInitialCharacterLayout, 80);
       lazyBootUI();
     });
   });
 
   window.addEventListener('load', ()=>{
     forceInitialCharacterLayout();
+    setTimeout(forceInitialCharacterLayout, 0);
+    setTimeout(forceInitialCharacterLayout, 60);
+    setTimeout(forceInitialCharacterLayout, 220);
+    setTimeout(lazyBootUI, 30);
+  });
+  window.addEventListener('pageshow', ()=>{
+    forceInitialCharacterLayout();
+    setTimeout(forceInitialCharacterLayout, 0);
+    setTimeout(forceInitialCharacterLayout, 60);
+    setTimeout(forceInitialCharacterLayout, 220);
     setTimeout(lazyBootUI, 30);
   });
   window.addEventListener('resize', ()=>{
-    if(startUI.style.display!=="none" || shopUI.style.display!=="none") forceInitialCharacterLayout();
+    if(startUI.style.display!=="none" || shopUI.style.display!=="none"){
+      forceInitialCharacterLayout();
+      setTimeout(forceInitialCharacterLayout, 0);
+    }
   });
 
   // init
