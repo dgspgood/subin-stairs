@@ -170,9 +170,10 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
 #start .topbar .sub{padding:12px 14px;border-radius:18px;background:rgba(255,255,255,.05);border:1px solid var(--ui-line)}
 #start .wallet{border-radius:18px;background:rgba(255,255,255,.08);border:1px solid var(--ui-line);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
 #start .grid{padding-top:8px;padding-bottom:8px}
-#start .row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-top:14px}
+#start .row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:14px}
 #start .row button{font-size:15px;font-weight:1000;min-height:50px}
 #btnStart{font-size:18px;background:linear-gradient(180deg,rgba(110,231,255,.28),rgba(110,231,255,.16));border-color:rgba(110,231,255,.38)}
+#btnBoard{background:linear-gradient(180deg,rgba(255,216,140,.22),rgba(255,216,140,.12));border-color:rgba(255,216,140,.30)}
 #btnRanking{background:linear-gradient(180deg,rgba(255,185,230,.22),rgba(255,185,230,.12));border-color:rgba(255,185,230,.30)}
 
 /* HUD / 게임 화면 */
@@ -260,6 +261,27 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   .rankProfile{grid-template-columns:1fr}
   #ranking .row:last-child{grid-template-columns:1fr 1fr}
 }
+
+/* 게시판 */
+#board .card,#noticeBoard .card{display:flex;flex-direction:column;gap:12px;max-width:760px;max-height:min(860px,calc(100vh - 36px));overflow:hidden;padding:20px}
+.boardTopRow{display:flex;gap:10px;flex-wrap:wrap}
+.boardTopRow button{flex:1 1 0;min-height:52px}
+.boardPanel{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);border-radius:18px;padding:14px}
+.boardList{flex:1;min-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-right:4px}
+.boardItem{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.05);border-radius:16px;padding:12px 14px}
+.boardMeta{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:12px;opacity:.82;font-weight:900;margin-bottom:6px}
+.boardText{font-size:14px;font-weight:900;line-height:1.45;word-break:break-word}
+.boardComposer{display:grid;grid-template-columns:120px 1fr auto;gap:10px;align-items:center}
+.boardComposer input,.boardComposer textarea,.noticeEditWrap textarea{width:100%;min-width:0;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;padding:12px 14px;box-sizing:border-box;font:inherit;font-weight:900}
+.boardComposer textarea,.noticeEditWrap textarea{resize:none;min-height:84px}
+.noticePreview{white-space:pre-wrap;line-height:1.5;font-weight:900}
+.noticeEditWrap{display:none;gap:10px}
+.noticeEditWrap.show{display:grid}
+.boardHint{font-size:12px;opacity:.82;font-weight:850}
+@media (max-width:768px){
+  .boardComposer{grid-template-columns:1fr;gap:8px}
+  #board .card,#noticeBoard .card{padding:16px;max-height:calc(100vh - 24px)}
+}
 </style>
 
 </head>
@@ -301,7 +323,7 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
         <div class="row">
           <button class="primary" id="btnStart">시작</button>
           <button id="btnShop">상점</button>
-          <button id="btnHow">조작법</button>
+          <button id="btnBoard">게시판</button>
           <button id="btnRanking">친구 랭킹</button>
         </div>
         <p class="sub" style="margin-top:10px"><b>상점</b>에서 아이템을 사두고, <b>시작 후 팝업</b>에서 이번 판에 쓸지 고를 수 있어!</p>
@@ -332,16 +354,46 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
       </div>
     </div>
 
-    <div id="how" class="overlay" style="display:none">
+    <div id="board" class="overlay" style="display:none">
       <div class="card">
-        <div class="title">조작법</div>
-        <p class="sub">
-          - <b>←</b> : 왼쪽 한 칸<br/>
-          - <b>→</b> : 오른쪽 한 칸<br/>
-          - <b>모바일 탭</b> : 방향 전환 + 한 칸<br/>
-          - 코인은 지갑에 누적되어 상점에 사용!
-        </p>
-        <div class="row"><button class="primary" id="btnBack">뒤로</button></div>
+        <div class="title">게시판</div>
+        <div class="sub" style="margin:0">친구들이 한 줄씩 남길 수 있어. 공지사항은 <b>관리자만</b> 수정할 수 있어.</div>
+        <div class="boardTopRow">
+          <button class="primary" id="btnNoticeOpen">공지사항</button>
+          <button id="btnBoardAdmin">관리자 로그인</button>
+          <button id="btnBoardBack">뒤로</button>
+        </div>
+        <div class="boardPanel">
+          <div style="font-weight:1000;font-size:16px;margin-bottom:8px">최근 글</div>
+          <div class="boardList" id="boardList"></div>
+        </div>
+        <div class="boardPanel">
+          <div style="font-weight:1000;font-size:16px;margin-bottom:8px">글쓰기</div>
+          <div class="boardComposer">
+            <input id="boardNickname" maxlength="12" placeholder="닉네임" />
+            <textarea id="boardMessage" maxlength="80" placeholder="한 줄 메시지를 남겨줘"></textarea>
+            <button class="primary" id="btnBoardPost">등록</button>
+          </div>
+          <div class="boardHint" style="margin-top:8px">이 기기에 저장되는 한줄 게시판이야.</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="noticeBoard" class="overlay" style="display:none">
+      <div class="card">
+        <div class="title">공지사항</div>
+        <div class="boardPanel">
+          <div class="noticePreview" id="noticeText"></div>
+        </div>
+        <div class="noticeEditWrap" id="noticeEditWrap">
+          <textarea id="noticeInput" maxlength="500" placeholder="공지사항을 입력해줘"></textarea>
+          <div class="row">
+            <button class="primary" id="btnNoticeSave">공지 저장</button>
+          </div>
+        </div>
+        <div class="row">
+          <button class="primary" id="btnNoticeBack">뒤로</button>
+        </div>
       </div>
     </div>
 
@@ -492,7 +544,8 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   const toastEl=document.getElementById('toast');
 
   const startUI=document.getElementById('start');
-  const howUI=document.getElementById('how');
+  const boardUI=document.getElementById('board');
+  const noticeBoardUI=document.getElementById('noticeBoard');
   const itemPromptUI=document.getElementById('itemPrompt');
   const overUI=document.getElementById('over');
   const shopUI=document.getElementById('shop');
@@ -504,9 +557,14 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   const btnStart=document.getElementById('btnStart');
   const btnElevator200=document.getElementById('btnElevator200');
   const btnElevator400=document.getElementById('btnElevator400');
-  const btnHow=document.getElementById('btnHow');
+  const btnBoard=document.getElementById('btnBoard');
   const btnRanking=document.getElementById('btnRanking');
-  const btnBack=document.getElementById('btnBack');
+  const btnNoticeOpen=document.getElementById('btnNoticeOpen');
+  const btnBoardAdmin=document.getElementById('btnBoardAdmin');
+  const btnBoardBack=document.getElementById('btnBoardBack');
+  const btnBoardPost=document.getElementById('btnBoardPost');
+  const btnNoticeBack=document.getElementById('btnNoticeBack');
+  const btnNoticeSave=document.getElementById('btnNoticeSave');
   const btnItemCancel=document.getElementById('btnItemCancel');
   const btnItemConfirm=document.getElementById('btnItemConfirm');
   const btnRetry=document.getElementById('btnRetry');
@@ -558,6 +616,12 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   const charGrid=document.getElementById('charGrid');
   const startItemsPanel=document.getElementById('itemPromptPanel');
   const shopList=document.getElementById('shopList');
+  const boardList=document.getElementById('boardList');
+  const boardNicknameInput=document.getElementById('boardNickname');
+  const boardMessageInput=document.getElementById('boardMessage');
+  const noticeTextEl=document.getElementById('noticeText');
+  const noticeInput=document.getElementById('noticeInput');
+  const noticeEditWrap=document.getElementById('noticeEditWrap');
 
   const WORLD={w:()=>canvas.getBoundingClientRect().width,h:()=>canvas.getBoundingClientRect().height};
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -1724,6 +1788,117 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   }
 
 
+
+  const LS_BOARD_POSTS='tower_board_posts_v1';
+  const LS_BOARD_NOTICE='tower_board_notice_v1';
+  const LS_BOARD_ADMIN_PIN='tower_board_admin_pin_v1';
+  let boardAdminAuthed=false;
+
+  function loadBoardPosts(){
+    try{
+      const raw=JSON.parse(localStorage.getItem(LS_BOARD_POSTS)||'[]')||[];
+      return Array.isArray(raw)?raw:[];
+    }catch(e){ return []; }
+  }
+  function saveBoardPosts(posts){
+    localStorage.setItem(LS_BOARD_POSTS, JSON.stringify(posts.slice(0,30)));
+  }
+  function loadNotice(){
+    return localStorage.getItem(LS_BOARD_NOTICE)||'공지사항이 아직 없어.\n관리자 로그인 후 첫 공지를 작성해줘!';
+  }
+  function saveNotice(v){
+    localStorage.setItem(LS_BOARD_NOTICE, String(v||'').trim()||'공지사항이 아직 없어.');
+  }
+  function formatBoardTime(ts){
+    const d=new Date(Number(ts)||Date.now());
+    const yy=String(d.getFullYear()).slice(2);
+    const mm=String(d.getMonth()+1).padStart(2,'0');
+    const dd=String(d.getDate()).padStart(2,'0');
+    const hh=String(d.getHours()).padStart(2,'0');
+    const mi=String(d.getMinutes()).padStart(2,'0');
+    return `${yy}.${mm}.${dd} ${hh}:${mi}`;
+  }
+  function refreshBoardAdminButton(){
+    if(btnBoardAdmin) btnBoardAdmin.textContent=boardAdminAuthed?'관리자 로그아웃':'관리자 로그인';
+    if(noticeEditWrap) noticeEditWrap.classList.toggle('show', boardAdminAuthed);
+  }
+  function renderBoard(){
+    const profile=loadRankProfile();
+    if(boardNicknameInput && document.activeElement!==boardNicknameInput){
+      boardNicknameInput.value=boardNicknameInput.value || profile.nickname || '';
+    }
+    const posts=loadBoardPosts();
+    boardList.innerHTML='';
+    if(!posts.length){
+      boardList.innerHTML='<div class="boardItem"><div class="boardText">아직 글이 없어. 첫 글을 남겨줘!</div></div>';
+      return;
+    }
+    posts.slice().reverse().forEach(post=>{
+      const row=document.createElement('div');
+      row.className='boardItem';
+      row.innerHTML=`<div class="boardMeta"><b>${post.nickname||'익명'}</b><span>${formatBoardTime(post.ts)}</span></div><div class="boardText"></div>`;
+      row.querySelector('.boardText').textContent=post.text||'';
+      boardList.appendChild(row);
+    });
+  }
+  function renderNotice(){
+    const txt=loadNotice();
+    noticeTextEl.textContent=txt;
+    if(noticeInput && document.activeElement!==noticeInput) noticeInput.value=txt;
+    refreshBoardAdminButton();
+  }
+  function openBoard(){
+    stopBGM();
+    renderBoard();
+    setOverlay(boardUI);
+    focus();
+  }
+  function openNoticeBoard(){
+    renderNotice();
+    setOverlay(noticeBoardUI);
+    focus();
+  }
+  function postBoardMessage(){
+    const nickname=(boardNicknameInput.value||loadRankProfile().nickname||'익명').replace(/\s+/g,' ').trim().slice(0,12)||'익명';
+    const text=(boardMessageInput.value||'').replace(/\s+/g,' ').trim().slice(0,80);
+    if(!text){ toast('글 내용을 입력해줘!'); return; }
+    const posts=loadBoardPosts();
+    posts.push({nickname,text,ts:Date.now()});
+    saveBoardPosts(posts);
+    boardMessageInput.value='';
+    boardNicknameInput.value=nickname;
+    toast('게시글 등록 완료!');
+    renderBoard();
+  }
+  function toggleBoardAdmin(){
+    if(boardAdminAuthed){
+      boardAdminAuthed=false;
+      refreshBoardAdminButton();
+      toast('관리자 로그아웃');
+      return;
+    }
+    const savedPin=localStorage.getItem(LS_BOARD_ADMIN_PIN)||'';
+    if(!savedPin){
+      const first=prompt('처음 관리자 비밀번호를 정해줘');
+      if(first===null) return;
+      const pin=String(first).trim();
+      if(pin.length<2){ toast('비밀번호를 다시 정해줘'); return; }
+      localStorage.setItem(LS_BOARD_ADMIN_PIN,pin);
+      boardAdminAuthed=true;
+      refreshBoardAdminButton();
+      toast('관리자 등록 완료!');
+      return;
+    }
+    const input=prompt('관리자 비밀번호를 입력해줘');
+    if(input===null) return;
+    if(String(input).trim()===savedPin){
+      boardAdminAuthed=true;
+      refreshBoardAdminButton();
+      toast('관리자 로그인 성공!');
+    }else{
+      toast('비밀번호가 달라!');
+    }
+  }
   // ===== Game =====
   let running=false, paused=false, gameOver=false;
   let score=0, runCoins=0, combo=1, comboStreak=0;
@@ -1732,8 +1907,6 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
 
   const TILE=58, THICK=14, SLOPE=0.24;
   const steps=[], maxSteps=180;
-  const BIG_COIN_CHANCE=0.12;
-  const BIG_COIN_REWARD=5;
   const player={gx:0,gy:0,dir:'R'};
   let stepPulse=0;
 
@@ -1831,7 +2004,7 @@ function drawParticles(){
   }
 
   function setOverlay(which){
-    startUI.style.display='none'; howUI.style.display='none'; itemPromptUI.style.display='none'; overUI.style.display='none'; shopUI.style.display='none'; rankingUI.style.display='none'; bonusRewardUI.style.display='none';
+    startUI.style.display='none'; boardUI.style.display='none'; noticeBoardUI.style.display='none'; itemPromptUI.style.display='none'; overUI.style.display='none'; shopUI.style.display='none'; rankingUI.style.display='none'; bonusRewardUI.style.display='none';
     if(which) which.style.display='flex';
     const overlayOpen = !!which;
     if(mobileControls) mobileControls.style.display = overlayOpen ? 'none' : 'flex';
@@ -1840,10 +2013,6 @@ function drawParticles(){
 
   function stepExists(gx,gy){ return steps.some(s=>s.gx===gx&&s.gy===gy); }
   function getStep(gx,gy){ return steps.find(s=>s.gx===gx&&s.gy===gy)||null; }
-  function makeCoinFlag(chance){
-    const hasCoin=Math.random()<chance;
-    return {coin:hasCoin, bigCoin:hasCoin && Math.random()<BIG_COIN_CHANCE};
-  }
 
   function ensurePathAhead(){
     let lastStep=steps[steps.length-1];
@@ -1851,8 +2020,7 @@ function drawParticles(){
       let gx=lastStep.gx, gy=lastStep.gy;
       if(Math.random()<0.5) gx++; else gy++;
       const depth=gx+gy;
-      const coinInfo=makeCoinFlag(0.20+Math.min(0.24,depth/600));
-      steps.push({gx,gy,skin:randInt(0,3), coin:coinInfo.coin, bigCoin:coinInfo.bigCoin});
+      steps.push({gx,gy,skin:randInt(0,3), coin:(Math.random()<(0.20+Math.min(0.24,depth/600)))});
       lastStep=steps[steps.length-1];
     }
     const minKeep=(player.gx+player.gy)-12;
@@ -1868,13 +2036,12 @@ function drawParticles(){
       setTimeout(()=>toast('보호막 장착!'), 120);
     }
     elevatorStartFloor=startFloor;
-    steps.length=0; steps.push({gx:0,gy:0,skin:randInt(0,3),coin:false,bigCoin:false});
+    steps.length=0; steps.push({gx:0,gy:0,skin:randInt(0,3),coin:false});
     let gx=0,gy=0;
     for(let i=0;i<46;i++){
       if(Math.random()<0.5) gx++; else gy++;
       const depth=gx+gy;
-      const coinInfo=(depth>2) ? makeCoinFlag(0.24) : {coin:false,bigCoin:false};
-      steps.push({gx,gy,skin:randInt(0,3),coin:coinInfo.coin,bigCoin:coinInfo.bigCoin});
+      steps.push({gx,gy,skin:randInt(0,3),coin:(Math.random()<0.24 && depth>2)});
     }
     player.gx=0; player.gy=0; player.dir='R';
     updateCamera(); stepPulse=0; parts.length=0;
@@ -2003,19 +2170,14 @@ function drawParticles(){
     const p=screenFromGrid(player.gx,player.gy);
 
     if(st && st.coin){
-      const isBig=!!st.bigCoin;
-      const reward=(isBig?BIG_COIN_REWARD:1) * (activeCoin2x ? 2 : 1);
-      st.coin=false;
-      st.bigCoin=false;
-      runCoins += reward;
+      st.coin=false; runCoins += activeCoin2x ? 2 : 1;
       if(getChar().id==='subin'){
-        spawnHeartBurst(p.x, p.y - TILE*0.18, isBig ? 'rgba(255,220,120,0.98)' : 'rgba(255,160,210,0.95)', isBig ? 18 : 14);
+        spawnHeartBurst(p.x, p.y - TILE*0.18, 'rgba(255,160,210,0.95)', 14);
       }else if(getChar().id==='seongbin'){
-        spawnSparkle(p.x, p.y - TILE*0.10, isBig ? 26 : 18);
+        spawnSparkle(p.x, p.y - TILE*0.10, 18);
       }else{
-        spawnSparkle(p.x, p.y - TILE*0.10, isBig ? 26 : 18);
+        spawnSparkle(p.x, p.y - TILE*0.10, 18);
       }
-      if(isBig) toast(`대형 코인 +${reward}`);
       sfxCoin();
     }else{
       if(getChar().id==='subin'){
@@ -2132,37 +2294,20 @@ function drawParticles(){
     shine.addColorStop(1,`rgba(255,255,255,0)`);
     ctx.fillStyle=shine; roundRect(ctx,x+3,y+3,TILE-6,TILE*0.48,16); ctx.fill();
   }
-  function drawCoin(cx,cy,alpha,isBig=false){
+  function drawCoin(cx,cy,alpha){
     const t=performance.now()/240;
     const bob=Math.sin(t)*4.5;
     const spin=(t*3.0)%(Math.PI*2);
-    const baseSize=isBig ? 52 : 34;
-    const wobble=isBig ? 8.5 : 5.5;
-    const w=baseSize + Math.sin(spin)*wobble;
-    const h=baseSize;
+    const w=34 + Math.sin(spin)*5.5;
+    const h=34;
     if(!window.__coinImg){
       window.__coinImg=new Image();
       window.__coinImg.src='assets/img_21.png';
     }
     ctx.save();
     ctx.globalAlpha=alpha;
-    ctx.translate(cx, cy-(isBig?34:26)+bob);
-    if(isBig){
-      drawGlow(0,0,42,'rgba(255,220,120,0.26)');
-      ctx.strokeStyle='rgba(255,245,180,0.90)';
-      ctx.lineWidth=3;
-      ctx.beginPath();
-      ctx.arc(0,0,(w*0.52),0,Math.PI*2);
-      ctx.stroke();
-    }
+    ctx.translate(cx, cy-26+bob);
     ctx.drawImage(window.__coinImg,-w/2,-h/2,w,h);
-    if(isBig){
-      ctx.fillStyle='rgba(255,245,180,0.95)';
-      ctx.font='900 15px system-ui';
-      ctx.textAlign='center';
-      ctx.fillText('5',0,6);
-      ctx.textAlign='start';
-    }
     ctx.restore();
   }
 
@@ -2554,7 +2699,7 @@ function drawParticles(){
       const depth=s.gx+s.gy;
       const alpha=clamp(1-((player.gx+player.gy)-depth)*0.08,0.10,1);
       drawStairTile(p.x,p.y,alpha,s.skin);
-      if(s.coin && alpha>0.25) drawCoin(p.x,p.y - TILE*0.02,alpha,!!s.bigCoin);
+      if(s.coin && alpha>0.25) drawCoin(p.x,p.y - TILE*0.02,alpha);
     }
     const tile=screenFromGrid(player.gx,player.gy);
     ctx.strokeStyle='rgba(255,255,255,0.55)'; ctx.lineWidth=3;
@@ -2565,7 +2710,13 @@ function drawParticles(){
   }
 
   // UI wiring
-  btnHow.addEventListener('click',()=>{ setOverlay(howUI); focus(); });
+  btnBoard.addEventListener('click',()=>openBoard());
+  btnNoticeOpen.addEventListener('click',()=>openNoticeBoard());
+  btnBoardAdmin.addEventListener('click',()=>toggleBoardAdmin());
+  btnBoardBack.addEventListener('click',()=>{ stopBGM(); forceInitialCharacterLayout(); setOverlay(startUI); focus(); });
+  btnBoardPost.addEventListener('click',()=>postBoardMessage());
+  btnNoticeBack.addEventListener('click',()=>{ setOverlay(boardUI); renderBoard(); focus(); });
+  btnNoticeSave.addEventListener('click',()=>{ if(!boardAdminAuthed){ toast('관리자만 공지를 수정할 수 있어!'); return; } saveNotice(noticeInput.value); renderNotice(); toast('공지 저장 완료!'); });
   btnRanking.addEventListener('click',()=>openRanking());
   btnOverRanking.addEventListener('click',()=>openRanking());
   btnRankSaveProfile.addEventListener('click',async ()=>{ saveRankProfile(); await renderRanking(); });
@@ -2586,7 +2737,6 @@ function drawParticles(){
   btnRankTabMonth.addEventListener('click',async ()=>{ rankTab='month'; await renderRanking(); });
   btnRankRefresh.addEventListener('click',()=>renderRanking());
   btnRankClose.addEventListener('click',()=>{ stopBGM(); forceInitialCharacterLayout(); setOverlay(startUI); focus(); });
-  btnBack.addEventListener('click',()=>{ stopBGM(); setOverlay(startUI); focus(); });
   btnShop.addEventListener('click',()=>openShop());
   btnShopTabItems.addEventListener('click',()=>{ registerSecretDir('L'); shopSection='items'; renderShop(); });
   btnShopTabChars.addEventListener('click',()=>{ registerSecretDir('R'); shopSection='chars'; renderShop(); });
@@ -2598,7 +2748,6 @@ function drawParticles(){
   function startGame(){
     bootLocked=false;
     activeCoin2x=false;
-    stopBGM();
     resetRun(0, false);
     pendingShieldUse=false;
     pendingElevatorUse=0;
@@ -2607,6 +2756,7 @@ function drawParticles(){
     renderStartItems();
     setOverlay(itemPromptUI);
     focus();
+    if(!audio.muted && !audio.started) startBGM();
   }
 
   function confirmItemPrompt(){
@@ -2716,16 +2866,9 @@ function drawParticles(){
   function forceInitialCharacterLayout(){
     renderShieldStatus();
     elWho.textContent=getChar().name;
-    if(startUI.style.display!=="none"){
-      renderCharGrid();
-      renderStartItems();
-    }
-    if(shopUI.style.display!=="none"){
-      renderShop();
-    }
   }
 
-  [subinImg,seongbinImg,jetImg,voltImg,sammyImg,lucyImg,maxImg,doniImg,dizzyImg,jeromeImg,paulImg,customSheetImg,mymeloImg,kuromiImg,kittyImg,purinImg].forEach(img=>{
+  [subinImg,seongbinImg,jetImg,voltImg,sammyImg,lucyImg,maxImg,doniImg,dizzyImg,jeromeImg,paulImg,customSheetImg].forEach(img=>{
     if(!img) return;
     img.addEventListener('load', ()=>{
       forceInitialCharacterLayout();
@@ -2737,16 +2880,15 @@ function drawParticles(){
     forceInitialCharacterLayout();
     setTimeout(lazyBootUI, 30);
   });
-  window.addEventListener('pageshow', ()=>{
-    forceInitialCharacterLayout();
-    setTimeout(lazyBootUI, 30);
-  });
   window.addEventListener('resize', ()=>{
     if(startUI.style.display!=="none" || shopUI.style.display!=="none") forceInitialCharacterLayout();
   });
 
   // init
   forceInitialCharacterLayout();
+  renderBoard();
+  renderNotice();
+  refreshBoardAdminButton();
   resetRun(0);
   updateElevatorButtons();
   running=false;
