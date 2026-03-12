@@ -820,13 +820,7 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
     make(1046.5,0.0); make(1318.5,0.04);
   }
 
-  function userGesture(){
-    startBGM();
-    box.removeEventListener('pointerdown',userGesture);
-    window.removeEventListener('keydown',userGesture);
-  }
-  box.addEventListener('pointerdown',userGesture,{passive:true});
-  window.addEventListener('keydown',userGesture,{passive:true});
+  function userGesture(){}
 
   btnSound.addEventListener('click',()=>{
     setMuted(!audio.muted);
@@ -2856,7 +2850,7 @@ function drawParticles(){
     renderStartItems();
     setOverlay(itemPromptUI);
     focus();
-    if(!audio.muted && !audio.started) startBGM();
+    stopBGM();
   }
 
   function confirmItemPrompt(){
@@ -2933,6 +2927,10 @@ function drawParticles(){
     }
     if(useCoin2x){
       toast('코인 2배 적용!');
+    }
+    ensureAudio();
+    if(audio.ctx && audio.ctx.state==='suspended'){
+      audio.ctx.resume().catch(()=>{});
     }
     if(!audio.started) startBGM();
     move(dir);
