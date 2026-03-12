@@ -252,6 +252,11 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   .rankMeta{flex-direction:column;align-items:stretch}
   .badge{justify-content:center}
 }
+@media (max-width:768px){
+  #board .card{padding:16px 14px 18px;max-height:calc(100vh - 20px)}
+  #board .card > div[style*="grid-template-columns:150px 1fr auto"]{grid-template-columns:1fr;gap:8px}
+  #board button{min-height:50px}
+}
 @media (max-width:480px){
   #start .grid{gap:10px}
   #start .row{grid-template-columns:1fr 1fr}
@@ -301,7 +306,7 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
         <div class="row">
           <button class="primary" id="btnStart">시작</button>
           <button id="btnShop">상점</button>
-          <button id="btnHow">조작법</button>
+          <button id="btnBoard">게시판</button>
           <button id="btnRanking">친구 랭킹</button>
         </div>
         <p class="sub" style="margin-top:10px"><b>상점</b>에서 아이템을 사두고, <b>시작 후 팝업</b>에서 이번 판에 쓸지 고를 수 있어!</p>
@@ -332,16 +337,17 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
       </div>
     </div>
 
-    <div id="how" class="overlay" style="display:none">
-      <div class="card">
-        <div class="title">조작법</div>
-        <p class="sub">
-          - <b>←</b> : 왼쪽 한 칸<br/>
-          - <b>→</b> : 오른쪽 한 칸<br/>
-          - <b>모바일 탭</b> : 방향 전환 + 한 칸<br/>
-          - 코인은 지갑에 누적되어 상점에 사용!
-        </p>
-        <div class="row"><button class="primary" id="btnBack">뒤로</button></div>
+    <div id="board" class="overlay" style="display:none">
+      <div class="card" style="max-width:760px;max-height:min(820px,calc(100vh - 28px));display:flex;flex-direction:column;gap:12px">
+        <div class="title">게시판</div>
+        <p class="sub" style="margin:0">친구들이랑 한줄씩 남겨봐! 최근 글이 위에 보여.</p>
+        <div style="display:grid;grid-template-columns:150px 1fr auto;gap:10px;align-items:center">
+          <input id="boardNick" maxlength="12" placeholder="닉네임" style="width:100%;min-width:0;min-height:50px;padding:0 14px;border-radius:16px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;font-size:15px;font-weight:900;box-sizing:border-box"/>
+          <input id="boardText" maxlength="50" placeholder="한줄 글을 입력해줘" style="width:100%;min-width:0;min-height:50px;padding:0 14px;border-radius:16px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;font-size:15px;font-weight:900;box-sizing:border-box"/>
+          <button class="primary" id="btnBoardPost">등록</button>
+        </div>
+        <div id="boardList" style="flex:1;min-height:280px;overflow-y:auto;padding-right:6px;display:flex;flex-direction:column;gap:10px"></div>
+        <div class="row"><button class="primary" id="btnBoardBack">뒤로</button></div>
       </div>
     </div>
 
@@ -492,7 +498,7 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   const toastEl=document.getElementById('toast');
 
   const startUI=document.getElementById('start');
-  const howUI=document.getElementById('how');
+  const boardUI=document.getElementById('board');
   const itemPromptUI=document.getElementById('itemPrompt');
   const overUI=document.getElementById('over');
   const shopUI=document.getElementById('shop');
@@ -504,9 +510,9 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   const btnStart=document.getElementById('btnStart');
   const btnElevator200=document.getElementById('btnElevator200');
   const btnElevator400=document.getElementById('btnElevator400');
-  const btnHow=document.getElementById('btnHow');
+  const btnBoard=document.getElementById('btnBoard');
   const btnRanking=document.getElementById('btnRanking');
-  const btnBack=document.getElementById('btnBack');
+  const btnBoardBack=document.getElementById('btnBoardBack');
   const btnItemCancel=document.getElementById('btnItemCancel');
   const btnItemConfirm=document.getElementById('btnItemConfirm');
   const btnRetry=document.getElementById('btnRetry');
@@ -522,6 +528,10 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   const rankHelpUI=document.getElementById('rankHelp');
   const btnReset=document.getElementById('btnReset');
   const btnShop=document.getElementById('btnShop');
+  const boardNickInput=document.getElementById('boardNick');
+  const boardTextInput=document.getElementById('boardText');
+  const btnBoardPost=document.getElementById('btnBoardPost');
+  const boardList=document.getElementById('boardList');
   const rankingUI=document.getElementById('ranking');
   const mobileControls=document.getElementById('mobileControls');
   const mobileHint=document.getElementById('mobileHint');
@@ -927,6 +937,52 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
 
   const getChar=()=>CHARACTERS.find(c=>c.id===selectedCharId)||CHARACTERS[0];
 
+
+  const LS_BOARD='tower_board_v1';
+  function loadBoardPosts(){
+    try{
+      const raw=JSON.parse(localStorage.getItem(LS_BOARD)||'[]');
+      return Array.isArray(raw)?raw:[];
+    }catch(e){ return []; }
+  }
+  function saveBoardPosts(posts){
+    localStorage.setItem(LS_BOARD, JSON.stringify((posts||[]).slice(0,20)));
+  }
+  function escapeHtml(str){
+    return String(str||'').replace(/[&<>"']/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+  }
+  function renderBoard(){
+    const profile=loadRankProfile?loadRankProfile():{nickname:''};
+    if(boardNickInput && document.activeElement!==boardNickInput){
+      boardNickInput.value=(boardNickInput.value||profile.nickname||'').trim();
+    }
+    const posts=loadBoardPosts();
+    if(!posts.length){
+      boardList.innerHTML='<div style="padding:16px;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);font-weight:850;opacity:.88">아직 글이 없어. 첫 글을 남겨봐!</div>';
+      return;
+    }
+    boardList.innerHTML=posts.map(post=>`<div style="padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10)"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:6px"><b style="font-size:15px">${escapeHtml(post.nick)}</b><span style="font-size:12px;opacity:.72;font-weight:850">${escapeHtml(post.time)}</span></div><div style="font-size:14px;line-height:1.45;font-weight:850;word-break:break-word">${escapeHtml(post.text)}</div></div>`).join('');
+  }
+  function openBoard(){
+    stopBGM();
+    renderBoard();
+    setOverlay(boardUI);
+    setTimeout(()=>{ try{ boardTextInput.focus(); }catch(e){} }, 30);
+  }
+  function postBoard(){
+    const profile=loadRankProfile();
+    const nick=(boardNickInput.value||profile.nickname||'익명').replace(/\s+/g,' ').trim().slice(0,12) || '익명';
+    const text=(boardTextInput.value||'').replace(/\s+/g,' ').trim().slice(0,50);
+    if(!text){ toast('글을 입력해줘!'); return; }
+    const now=new Date();
+    const time=`${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const posts=loadBoardPosts();
+    posts.unshift({nick,text,time});
+    saveBoardPosts(posts);
+    boardTextInput.value='';
+    renderBoard();
+    toast('게시글 등록 완료!');
+  }
 
   const LS_RANK_PROFILE='tower_rank_profile_v1';
   const LS_RANK_DATA='tower_rank_data_v1';
@@ -1826,7 +1882,7 @@ function drawParticles(){
   }
 
   function setOverlay(which){
-    startUI.style.display='none'; howUI.style.display='none'; itemPromptUI.style.display='none'; overUI.style.display='none'; shopUI.style.display='none'; rankingUI.style.display='none'; bonusRewardUI.style.display='none';
+    startUI.style.display='none'; boardUI.style.display='none'; itemPromptUI.style.display='none'; overUI.style.display='none'; shopUI.style.display='none'; rankingUI.style.display='none'; bonusRewardUI.style.display='none';
     if(which) which.style.display='flex';
     const overlayOpen = !!which;
     if(mobileControls) mobileControls.style.display = overlayOpen ? 'none' : 'flex';
@@ -2532,7 +2588,7 @@ function drawParticles(){
   }
 
   // UI wiring
-  btnHow.addEventListener('click',()=>{ setOverlay(howUI); focus(); });
+  btnBoard.addEventListener('click',()=>openBoard());
   btnRanking.addEventListener('click',()=>openRanking());
   btnOverRanking.addEventListener('click',()=>openRanking());
   btnRankSaveProfile.addEventListener('click',async ()=>{ saveRankProfile(); await renderRanking(); });
@@ -2551,9 +2607,11 @@ function drawParticles(){
   btnRankTabToday.addEventListener('click',async ()=>{ rankTab='today'; await renderRanking(); });
   btnRankTabWeek.addEventListener('click',async ()=>{ rankTab='week'; await renderRanking(); });
   btnRankTabMonth.addEventListener('click',async ()=>{ rankTab='month'; await renderRanking(); });
+  btnBoardPost.addEventListener('click',()=>postBoard());
+  boardTextInput.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); postBoard(); }});
   btnRankRefresh.addEventListener('click',()=>renderRanking());
   btnRankClose.addEventListener('click',()=>{ stopBGM(); forceInitialCharacterLayout(); setOverlay(startUI); focus(); });
-  btnBack.addEventListener('click',()=>{ stopBGM(); setOverlay(startUI); focus(); });
+  btnBoardBack.addEventListener('click',()=>{ stopBGM(); setOverlay(startUI); focus(); });
   btnShop.addEventListener('click',()=>openShop());
   btnShopTabItems.addEventListener('click',()=>{ registerSecretDir('L'); shopSection='items'; renderShop(); });
   btnShopTabChars.addEventListener('click',()=>{ registerSecretDir('R'); shopSection='chars'; renderShop(); });
