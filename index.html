@@ -146,26 +146,6 @@
     .rankConfig input{min-width:0}
     .rankTip{font-size:12px;opacity:.82;font-weight:800;line-height:1.45}
     .rankSmall{font-size:12px;opacity:.8;font-weight:850}
-
-    .boardCard{max-width:760px;max-height:min(860px,calc(100vh - 28px));overflow:auto;padding:22px}
-    .boardNoticeWrap{display:flex;flex-direction:column;gap:10px;margin:4px 0 12px}
-    .boardNoticeBtn{align-self:flex-start;min-width:132px}
-    .boardNoticeBox{padding:14px 16px;border-radius:18px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);font-weight:900;line-height:1.5}
-    .boardForm{padding:14px;border-radius:20px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.04));margin-bottom:12px}
-    .boardLabel{display:block;font-weight:950;margin:4px 0 8px}
-    .boardInput,.boardTextarea{width:100%;box-sizing:border-box;border-radius:16px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:#fff;padding:12px 14px;font:inherit;font-weight:900}
-    .boardTextarea{min-height:92px;resize:vertical}
-    .boardInput::placeholder,.boardTextarea::placeholder{color:rgba(255,255,255,.58)}
-    .boardRow{margin-top:10px}
-    .boardListWrap{padding:14px;border-radius:20px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05)}
-    .boardListTitle{font-weight:1000;margin-bottom:10px}
-    .boardList{display:flex;flex-direction:column;gap:10px}
-    .boardItem{padding:12px 14px;border-radius:16px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.05)}
-    .boardMeta{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:6px;font-size:12px;opacity:.86;font-weight:900}
-    .boardNick{font-size:14px;opacity:1}
-    .boardText{font-weight:900;line-height:1.45;word-break:break-word}
-    .boardEmpty{padding:12px 14px;border-radius:16px;border:1px dashed rgba(255,255,255,.16);opacity:.82;font-weight:850;text-align:center}
-
   </style>
 
 <style id="ui-refresh-v1">
@@ -321,7 +301,7 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
         <div class="row">
           <button class="primary" id="btnStart">시작</button>
           <button id="btnShop">상점</button>
-          <button id="btnBoard">게시판</button>
+          <button id="btnHow">조작법</button>
           <button id="btnRanking">친구 랭킹</button>
         </div>
         <p class="sub" style="margin-top:10px"><b>상점</b>에서 아이템을 사두고, <b>시작 후 팝업</b>에서 이번 판에 쓸지 고를 수 있어!</p>
@@ -352,30 +332,16 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
       </div>
     </div>
 
-    <div id="board" class="overlay" style="display:none">
-      <div class="card boardCard">
-        <div class="title">게시판</div>
-        <div class="boardNoticeWrap">
-          <button class="primary boardNoticeBtn" id="btnBoardNotice">공지사항</button>
-          <div class="boardNoticeBox" id="boardNoticeBox">
-            큰 코인은 5코인을 줘요! · 배경은 상점에서 300코인으로 구매할 수 있어요.
-          </div>
-        </div>
-        <div class="boardForm">
-          <label class="boardLabel" for="boardNickname">닉네임</label>
-          <input id="boardNickname" class="boardInput" maxlength="12" placeholder="닉네임을 적어줘" />
-          <label class="boardLabel" for="boardMessage">한줄글</label>
-          <textarea id="boardMessage" class="boardTextarea" maxlength="60" placeholder="한줄글을 적어줘"></textarea>
-          <div class="row boardRow">
-            <button class="primary" id="btnBoardWrite">등록</button>
-            <button id="btnBoardClear">입력지우기</button>
-          </div>
-        </div>
-        <div class="boardListWrap">
-          <div class="boardListTitle">최근 글</div>
-          <div id="boardList" class="boardList"></div>
-        </div>
-        <div class="row"><button class="primary" id="btnBoardBack">뒤로</button></div>
+    <div id="how" class="overlay" style="display:none">
+      <div class="card">
+        <div class="title">조작법</div>
+        <p class="sub">
+          - <b>←</b> : 왼쪽 한 칸<br/>
+          - <b>→</b> : 오른쪽 한 칸<br/>
+          - <b>모바일 탭</b> : 방향 전환 + 한 칸<br/>
+          - 코인은 지갑에 누적되어 상점에 사용!
+        </p>
+        <div class="row"><button class="primary" id="btnBack">뒤로</button></div>
       </div>
     </div>
 
@@ -526,7 +492,7 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   const toastEl=document.getElementById('toast');
 
   const startUI=document.getElementById('start');
-  const boardUI=document.getElementById('board');
+  const howUI=document.getElementById('how');
   const itemPromptUI=document.getElementById('itemPrompt');
   const overUI=document.getElementById('over');
   const shopUI=document.getElementById('shop');
@@ -538,9 +504,9 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   const btnStart=document.getElementById('btnStart');
   const btnElevator200=document.getElementById('btnElevator200');
   const btnElevator400=document.getElementById('btnElevator400');
-  const btnBoard=document.getElementById('btnBoard');
+  const btnHow=document.getElementById('btnHow');
   const btnRanking=document.getElementById('btnRanking');
-  const btnBoardBack=document.getElementById('btnBoardBack');
+  const btnBack=document.getElementById('btnBack');
   const btnItemCancel=document.getElementById('btnItemCancel');
   const btnItemConfirm=document.getElementById('btnItemConfirm');
   const btnRetry=document.getElementById('btnRetry');
@@ -588,14 +554,6 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   const btnShopTabChars=document.getElementById('btnShopTabChars');
   const shopSectionHint=document.getElementById('shopSectionHint');
   const shopSubText=document.getElementById('shopSubText');
-
-  const btnBoardNotice=document.getElementById('btnBoardNotice');
-  const boardNoticeBox=document.getElementById('boardNoticeBox');
-  const boardNickname=document.getElementById('boardNickname');
-  const boardMessage=document.getElementById('boardMessage');
-  const btnBoardWrite=document.getElementById('btnBoardWrite');
-  const btnBoardClear=document.getElementById('btnBoardClear');
-  const boardListEl=document.getElementById('boardList');
 
   const charGrid=document.getElementById('charGrid');
   const startItemsPanel=document.getElementById('itemPromptPanel');
@@ -1763,65 +1721,6 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   }
 
 
-
-  const LS_BOARD_POSTS='tower_board_posts_v1';
-  const LS_BOARD_NICK='tower_board_nick_v1';
-
-  function loadBoardPosts(){
-    try{
-      const raw=JSON.parse(localStorage.getItem(LS_BOARD_POSTS)||'[]');
-      return Array.isArray(raw)?raw:[];
-    }catch(e){ return []; }
-  }
-  function saveBoardPosts(posts){
-    localStorage.setItem(LS_BOARD_POSTS, JSON.stringify(posts.slice(0,20)));
-  }
-  function formatBoardTime(ts){
-    try{
-      const d=new Date(ts);
-      const yy=String(d.getFullYear()).slice(2);
-      const mm=String(d.getMonth()+1).padStart(2,'0');
-      const dd=String(d.getDate()).padStart(2,'0');
-      const hh=String(d.getHours()).padStart(2,'0');
-      const mi=String(d.getMinutes()).padStart(2,'0');
-      return `${yy}.${mm}.${dd} ${hh}:${mi}`;
-    }catch(e){ return ''; }
-  }
-  function renderBoard(){
-    if(boardNickname) boardNickname.value=localStorage.getItem(LS_BOARD_NICK)||'';
-    const posts=loadBoardPosts();
-    boardListEl.innerHTML='';
-    if(!posts.length){
-      boardListEl.innerHTML='<div class="boardEmpty">아직 글이 없어. 첫 글을 남겨봐!</div>';
-      return;
-    }
-    posts.forEach(post=>{
-      const item=document.createElement('div');
-      item.className='boardItem';
-      item.innerHTML=`<div class="boardMeta"><span class="boardNick">${post.nick}</span><span>${formatBoardTime(post.ts)}</span></div><div class="boardText">${post.msg}</div>`;
-      boardListEl.appendChild(item);
-    });
-  }
-  function openBoard(){
-    stopBGM();
-    renderBoard();
-    setOverlay(boardUI);
-    focus();
-  }
-  function submitBoardPost(){
-    const nick=(boardNickname.value||'').replace(/\s+/g,' ').trim().slice(0,12);
-    const msg=(boardMessage.value||'').replace(/\s+/g,' ').trim().slice(0,60);
-    if(!nick){ toast('닉네임을 적어줘!'); boardNickname.focus(); return; }
-    if(!msg){ toast('한줄글을 적어줘!'); boardMessage.focus(); return; }
-    localStorage.setItem(LS_BOARD_NICK,nick);
-    const posts=loadBoardPosts();
-    posts.unshift({nick,msg,ts:Date.now()});
-    saveBoardPosts(posts);
-    boardMessage.value='';
-    renderBoard();
-    toast('게시판에 등록했어!');
-  }
-
   // ===== Game =====
   let running=false, paused=false, gameOver=false;
   let score=0, runCoins=0, combo=1, comboStreak=0;
@@ -1927,7 +1826,7 @@ function drawParticles(){
   }
 
   function setOverlay(which){
-    startUI.style.display='none'; boardUI.style.display='none'; itemPromptUI.style.display='none'; overUI.style.display='none'; shopUI.style.display='none'; rankingUI.style.display='none'; bonusRewardUI.style.display='none';
+    startUI.style.display='none'; howUI.style.display='none'; itemPromptUI.style.display='none'; overUI.style.display='none'; shopUI.style.display='none'; rankingUI.style.display='none'; bonusRewardUI.style.display='none';
     if(which) which.style.display='flex';
     const overlayOpen = !!which;
     if(mobileControls) mobileControls.style.display = overlayOpen ? 'none' : 'flex';
@@ -2633,7 +2532,7 @@ function drawParticles(){
   }
 
   // UI wiring
-  btnBoard.addEventListener('click',()=>openBoard());
+  btnHow.addEventListener('click',()=>{ setOverlay(howUI); focus(); });
   btnRanking.addEventListener('click',()=>openRanking());
   btnOverRanking.addEventListener('click',()=>openRanking());
   btnRankSaveProfile.addEventListener('click',async ()=>{ saveRankProfile(); await renderRanking(); });
@@ -2654,10 +2553,7 @@ function drawParticles(){
   btnRankTabMonth.addEventListener('click',async ()=>{ rankTab='month'; await renderRanking(); });
   btnRankRefresh.addEventListener('click',()=>renderRanking());
   btnRankClose.addEventListener('click',()=>{ stopBGM(); forceInitialCharacterLayout(); setOverlay(startUI); focus(); });
-  btnBoardBack.addEventListener('click',()=>{ stopBGM(); setOverlay(startUI); focus(); });
-  btnBoardWrite.addEventListener('click',submitBoardPost);
-  btnBoardClear.addEventListener('click',()=>{ boardMessage.value=''; boardMessage.focus(); });
-  if(btnBoardNotice) btnBoardNotice.addEventListener('click',()=>{ toast('공지사항을 확인해줘!'); });
+  btnBack.addEventListener('click',()=>{ stopBGM(); setOverlay(startUI); focus(); });
   btnShop.addEventListener('click',()=>openShop());
   btnShopTabItems.addEventListener('click',()=>{ registerSecretDir('L'); shopSection='items'; renderShop(); });
   btnShopTabChars.addEventListener('click',()=>{ registerSecretDir('R'); shopSection='chars'; renderShop(); });
@@ -2787,22 +2683,46 @@ function drawParticles(){
   function forceInitialCharacterLayout(){
     renderShieldStatus();
     elWho.textContent=getChar().name;
+    try{
+      if(startUI.style.display!=="none"){
+        renderCharGrid();
+        renderStartItems();
+      }
+      if(shopUI.style.display!=="none"){
+        renderShop();
+      }
+    }catch(e){ console.warn(e); }
   }
 
-  [subinImg,seongbinImg,jetImg,voltImg,sammyImg,lucyImg,maxImg,doniImg,dizzyImg,jeromeImg,paulImg,customSheetImg].forEach(img=>{
+  [subinImg,seongbinImg,jetImg,voltImg,sammyImg,lucyImg,maxImg,doniImg,dizzyImg,jeromeImg,paulImg,customSheetImg,mymeloImg,kuromiImg,kittyImg,purinImg].forEach(img=>{
     if(!img) return;
     img.addEventListener('load', ()=>{
       forceInitialCharacterLayout();
+      setTimeout(forceInitialCharacterLayout, 0);
+      setTimeout(forceInitialCharacterLayout, 80);
       lazyBootUI();
     });
   });
 
   window.addEventListener('load', ()=>{
     forceInitialCharacterLayout();
+    setTimeout(forceInitialCharacterLayout, 0);
+    setTimeout(forceInitialCharacterLayout, 60);
+    setTimeout(forceInitialCharacterLayout, 220);
+    setTimeout(lazyBootUI, 30);
+  });
+  window.addEventListener('pageshow', ()=>{
+    forceInitialCharacterLayout();
+    setTimeout(forceInitialCharacterLayout, 0);
+    setTimeout(forceInitialCharacterLayout, 60);
+    setTimeout(forceInitialCharacterLayout, 220);
     setTimeout(lazyBootUI, 30);
   });
   window.addEventListener('resize', ()=>{
-    if(startUI.style.display!=="none" || shopUI.style.display!=="none") forceInitialCharacterLayout();
+    if(startUI.style.display!=="none" || shopUI.style.display!=="none"){
+      forceInitialCharacterLayout();
+      setTimeout(forceInitialCharacterLayout, 0);
+    }
   });
 
   // init
