@@ -859,6 +859,15 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   let activeShield=0;
   let activeCoin2x=false;
   let selectedCoin2xUse=false;
+  const BIG_COIN_CHANCE=0.14;
+  const BIG_COIN_REWARD=5;
+  function makeCoinFlag(chance){
+    if(Math.random()>=chance) return false;
+    return Math.random()<BIG_COIN_CHANCE ? 'big' : true;
+  }
+  function coinRewardFor(flag){
+    return flag==='big' ? BIG_COIN_REWARD : 1;
+  }
   function renderShieldStatus(){
     if(walletShieldEl) walletShieldEl.textContent=best;
     if(shopShieldEl) shopShieldEl.textContent=shieldTickets;
@@ -1791,16 +1800,9 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   let elevatorMode=false, elevatorTarget=0, elevatorDisplayFloor=0, elevatorTimer=0, elevatorDuration=0, elevatorStartFloor=0;
 
   const TILE=58, THICK=14, SLOPE=0.24;
-  const BIG_COIN_CHANCE=0.14;
-  const BIG_COIN_REWARD=5;
   const steps=[], maxSteps=180;
   const player={gx:0,gy:0,dir:'R'};
   let stepPulse=0;
-
-  function makeCoinFlag(chance){
-    if(Math.random()>=chance) return {coin:false,bigCoin:false};
-    return {coin:true,bigCoin:Math.random()<BIG_COIN_CHANCE};
-  }
 
   const camera={x:0,y:0};
   function desiredAnchor(){ const w=WORLD.w(), h=WORLD.h(); return {x:w*0.5,y:h*0.60}; }
@@ -1912,8 +1914,7 @@ function drawParticles(){
       let gx=lastStep.gx, gy=lastStep.gy;
       if(Math.random()<0.5) gx++; else gy++;
       const depth=gx+gy;
-      const coinInfo=makeCoinFlag(0.20+Math.min(0.24,depth/600));
-      steps.push({gx,gy,skin:randInt(0,3), coin:coinInfo.coin, bigCoin:coinInfo.bigCoin});
+      steps.push({gx,gy,skin:randInt(0,3), coin:(Math.random()<(0.20+Math.min(0.24,depth/600)))});
       lastStep=steps[steps.length-1];
     }
     const minKeep=(player.gx+player.gy)-12;
@@ -1929,13 +1930,12 @@ function drawParticles(){
       setTimeout(()=>toast('보호막 장착!'), 120);
     }
     elevatorStartFloor=startFloor;
-    steps.length=0; steps.push({gx:0,gy:0,skin:randInt(0,3),coin:false,bigCoin:false});
+    steps.length=0; steps.push({gx:0,gy:0,skin:randInt(0,3),coin:false});
     let gx=0,gy=0;
     for(let i=0;i<46;i++){
       if(Math.random()<0.5) gx++; else gy++;
       const depth=gx+gy;
-      const coinInfo=(depth>2) ? makeCoinFlag(0.24) : {coin:false,bigCoin:false};
-      steps.push({gx,gy,skin:randInt(0,3),coin:coinInfo.coin,bigCoin:coinInfo.bigCoin});
+      steps.push({gx,gy,skin:randInt(0,3),coin:(depth>2 ? makeCoinFlag(0.24) : false)});
     }
     player.gx=0; player.gy=0; player.dir='R';
     updateCamera(); stepPulse=0; parts.length=0;
@@ -2064,19 +2064,19 @@ function drawParticles(){
     const p=screenFromGrid(player.gx,player.gy);
 
     if(st && st.coin){
-      const isBig=!!st.bigCoin;
-      const reward=(isBig?BIG_COIN_REWARD:1) * (activeCoin2x ? 2 : 1);
-      st.coin=false;
-      st.bigCoin=false;
-      runCoins += reward;
-      if(getChar().id==='subin'){
-        spawnHeartBurst(p.x, p.y - TILE*0.18, isBig ? 'rgba(255,220,120,0.98)' : 'rgba(255,160,210,0.95)', isBig ? 18 : 14);
-      }else if(getChar().id==='seongbin'){
-        spawnSparkle(p.x, p.y - TILE*0.10, isBig ? 26 : 18);
-      }else{
-        spawnSparkle(p.x, p.y - TILE*0.10, isBig ? 26 : 18);
+      const gained=coinRewardFor(st.coin) * (activeCoin2x ? 2 : 1);
+      const isBigCoin=st.coin==='big';
+      st.coin=false; runCoins += gained;
+      if(isBigCoin){
+        toast(`큰 코인 획득! +${gained}`);
       }
-      if(isBig) toast(`대형 코인 +${reward}`);
+      if(getChar().id==='subin'){
+        spawnHeartBurst(p.x, p.y - TILE*0.18, 'rgba(255,160,210,0.95)', 14);
+      }else if(getChar().id==='seongbin'){
+        spawnSparkle(p.x, p.y - TILE*0.10, 18);
+      }else{
+        spawnSparkle(p.x, p.y - TILE*0.10, 18);
+      }
       sfxCoin();
     }else{
       if(getChar().id==='subin'){
@@ -2214,32 +2214,39 @@ function drawParticles(){
     const t=performance.now()/240;
     const bob=Math.sin(t)*4.5;
     const spin=(t*3.0)%(Math.PI*2);
-    const baseSize=isBig ? 52 : 34;
-    const wobble=isBig ? 8.5 : 5.5;
-    const w=baseSize + Math.sin(spin)*wobble;
-    const h=baseSize;
+    const base=isBig?52:34;
+    const wobble=isBig?8:5.5;
+    const w=base + Math.sin(spin)*wobble;
+    const h=base;
     if(!window.__coinImg){
       window.__coinImg=new Image();
       window.__coinImg.src='assets/img_21.png';
     }
     ctx.save();
     ctx.globalAlpha=alpha;
-    ctx.translate(cx, cy-(isBig?34:26)+bob);
+    ctx.translate(cx, cy-(isBig?32:26)+bob);
     if(isBig){
-      drawGlow(0,0,42,'rgba(255,220,120,0.26)');
-      ctx.strokeStyle='rgba(255,245,180,0.90)';
-      ctx.lineWidth=3;
+      const glow=ctx.createRadialGradient(0,0,8,0,0,w*0.8);
+      glow.addColorStop(0,'rgba(255,245,170,0.32)');
+      glow.addColorStop(0.55,'rgba(255,220,120,0.18)');
+      glow.addColorStop(1,'rgba(255,220,120,0)');
+      ctx.fillStyle=glow;
       ctx.beginPath();
-      ctx.arc(0,0,(w*0.52),0,Math.PI*2);
-      ctx.stroke();
+      ctx.arc(0,0,w*0.78,0,Math.PI*2);
+      ctx.fill();
     }
     ctx.drawImage(window.__coinImg,-w/2,-h/2,w,h);
     if(isBig){
-      ctx.fillStyle='rgba(255,245,180,0.95)';
-      ctx.font='900 15px system-ui';
+      ctx.strokeStyle='rgba(255,235,150,0.95)';
+      ctx.lineWidth=3;
+      ctx.beginPath();
+      ctx.arc(0,0,w*0.43,0,Math.PI*2);
+      ctx.stroke();
+      ctx.fillStyle='rgba(255,255,255,0.92)';
+      ctx.font='1000 16px system-ui';
       ctx.textAlign='center';
-      ctx.fillText('5',0,6);
-      ctx.textAlign='start';
+      ctx.textBaseline='middle';
+      ctx.fillText('5',0,1);
     }
     ctx.restore();
   }
@@ -2639,7 +2646,7 @@ function drawParticles(){
       const depth=s.gx+s.gy;
       const alpha=clamp(1-((player.gx+player.gy)-depth)*0.08,0.10,1);
       drawStairTile(p.x,p.y,alpha,s.skin);
-      if(s.coin && alpha>0.25) drawCoin(p.x,p.y - TILE*0.02,alpha,!!s.bigCoin);
+      if(s.coin && alpha>0.25) drawCoin(p.x,p.y - TILE*0.02,alpha,s.coin==='big');
     }
     const tile=screenFromGrid(player.gx,player.gy);
     ctx.strokeStyle='rgba(255,255,255,0.55)'; ctx.lineWidth=3;
