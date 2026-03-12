@@ -1590,6 +1590,21 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
       coin2xRow.querySelector('button[data-buy-coin2x]').addEventListener('click',buyCoin2xTicket);
       shopList.appendChild(coin2xRow);
 
+      const nextCoinUpgradeLevel=Math.min(5, coinUpgradeLevel+1);
+      const coinUpgradeCost=coinUpgradeLevel>=5 ? 0 : getCoinUpgradeCost(nextCoinUpgradeLevel);
+      const coinUpgradeRow=document.createElement('div');
+      coinUpgradeRow.className='shopItem';
+      coinUpgradeRow.innerHTML=itemCardHtml(
+        '🪙',
+        `코인 업그레이드 Lv.${coinUpgradeLevel}`,
+        `${coinUpgradeDesc(coinUpgradeLevel)}<br>${coinUpgradeLevel>=5 ? '최대 레벨 완료' : `다음 Lv.${nextCoinUpgradeLevel} · ${Math.round(getCoinUpgradeChance(nextCoinUpgradeLevel)*100)}% 확률로 +1코인`}`,
+        coinUpgradeLevel>=5 ? 0 : coinUpgradeCost,
+        `<button data-buy-coin-upgrade class="primary" style="padding:10px 12px;border-radius:14px;width:100%" ${coinUpgradeLevel>=5 || wallet<coinUpgradeCost ? 'disabled' : ''}>${coinUpgradeLevel>=5 ? '최대레벨' : (wallet>=coinUpgradeCost ? '업그레이드' : '코인 부족')}</button>`
+      );
+      const coinUpgradeBtn=coinUpgradeRow.querySelector('button[data-buy-coin-upgrade]');
+      if(coinUpgradeBtn) coinUpgradeBtn.addEventListener('click',buyCoinUpgrade);
+      shopList.appendChild(coinUpgradeRow);
+
       const themeDefs=[
         {id:'basic', icon:'🌤️', name:'기본 배경', desc:'무료 기본 배경', price:0},
         {id:'day_sky', icon:'☀️', name:'낮하늘 배경', desc:'맑고 밝은 파란 하늘', price:300},
@@ -1771,6 +1786,17 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
     renderShop();
     toast('코인 2배 구매 완료! 시작 전에 쓸지 고를 수 있어');
     renderStartItems();
+  }
+
+  function buyCoinUpgrade(){
+    if(coinUpgradeLevel>=5){ toast('코인 업그레이드는 이미 최대 레벨이야!'); return; }
+    const nextLevel=coinUpgradeLevel+1;
+    const cost=getCoinUpgradeCost(nextLevel);
+    if(wallet < cost){ toast('코인이 부족해! 🪙'); return; }
+    setWallet(wallet-cost);
+    setCoinUpgradeLevel(nextLevel);
+    renderShop();
+    toast(`코인 업그레이드 Lv.${nextLevel} 완료!`);
   }
 
   function getThemeLabel(id){
@@ -2084,11 +2110,18 @@ function drawParticles(){
     const p=screenFromGrid(player.gx,player.gy);
 
     if(st && st.coin){
-      const gained=coinRewardFor(st.coin) * (activeCoin2x ? 2 : 1);
+      let gained=coinRewardFor(st.coin) * (activeCoin2x ? 2 : 1);
       const isBigCoin=st.coin==='big';
+      let upgradeBonus=0;
+      if(coinUpgradeLevel>0 && Math.random() < getCoinUpgradeChance(coinUpgradeLevel)){
+        upgradeBonus=1;
+        gained += 1;
+      }
       st.coin=false; runCoins += gained;
       if(isBigCoin){
         toast(`큰 코인 획득! +${gained}`);
+      }else if(upgradeBonus>0){
+        toast('코인 업그레이드! +1');
       }
       if(getChar().id==='subin'){
         spawnHeartBurst(p.x, p.y - TILE*0.18, 'rgba(255,160,210,0.95)', 14);
