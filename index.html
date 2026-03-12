@@ -157,6 +157,9 @@
     .boardList{display:flex;flex-direction:column;gap:10px;margin-top:12px}
     .boardPost{padding:12px 14px;border-radius:16px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.05)}
     .boardMeta{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:6px;font-size:12px;opacity:.86;font-weight:900}
+    .boardMetaRight{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+    .boardDeleteBtn{padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,120,140,.14);color:#fff;font-weight:950;font-size:12px;cursor:pointer}
+    .boardDeleteBtn:hover{filter:brightness(1.08)}
     .boardNick{font-size:14px;font-weight:1000;opacity:1}
     .boardMessage{white-space:pre-wrap;line-height:1.45;font-weight:850}
   </style>
@@ -1217,7 +1220,7 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   function loadBoardPosts(){
     try{ const raw=JSON.parse(localStorage.getItem(LS_BOARD_POSTS)||'[]'); return Array.isArray(raw)?raw:[]; }catch(e){ return []; }
   }
-  function saveBoardPosts(posts){ localStorage.setItem(LS_BOARD_POSTS, JSON.stringify((posts||[]).slice(0,30))); }
+  function saveBoardPosts(posts){ localStorage.setItem(LS_BOARD_POSTS, JSON.stringify((posts||[]).slice(0,50))); }
   function loadBoardNotice(){ return localStorage.getItem(LS_BOARD_NOTICE)||BOARD_DEFAULT_NOTICE; }
   function saveBoardNotice(v){ localStorage.setItem(LS_BOARD_NOTICE, String(v||'')); }
   function formatBoardTime(ts){
@@ -1239,7 +1242,7 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
       nick:decodeURIComponent(String((post&&post.nick)||'')),
       msg:String((post&&post.msg)||''),
       ts:Number((post&&post.ts)||0)
-    })).filter(p=>p.nick&&p.msg&&p.ts).sort((a,b)=>b.ts-a.ts).slice(0,30);
+    })).filter(p=>p.nick&&p.msg&&p.ts).sort((a,b)=>b.ts-a.ts).slice(0,50);
   }
   async function fetchBoardNoticeOnline(group){
     const raw=await fetchOnlineJson(getBoardNoticePath(group));
@@ -1267,8 +1270,10 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
       posts.forEach(post=>{
         const item=document.createElement('div');
         item.className='boardPost';
-        item.innerHTML=`<div class="boardMeta"><span class="boardNick">${post.nick}</span><span>${formatBoardTime(post.ts)}</span></div><div class="boardMessage"></div>`;
+        item.innerHTML=`<div class="boardMeta"><span class="boardNick">${post.nick}</span><div class="boardMetaRight"><span>${formatBoardTime(post.ts)}</span><button class="boardDeleteBtn" data-post-id="${post.id}">삭제</button></div></div><div class="boardMessage"></div>`;
         item.querySelector('.boardMessage').textContent=post.msg;
+        const delBtn=item.querySelector('.boardDeleteBtn');
+        if(delBtn) delBtn.addEventListener('click',()=>deleteBoardMessage(post));
         boardListEl.appendChild(item);
       });
     }catch(e){
@@ -1283,8 +1288,10 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
       posts.forEach(post=>{
         const item=document.createElement('div');
         item.className='boardPost';
-        item.innerHTML=`<div class="boardMeta"><span class="boardNick">${post.nick}</span><span>${formatBoardTime(post.ts)}</span></div><div class="boardMessage"></div>`;
+        item.innerHTML=`<div class="boardMeta"><span class="boardNick">${post.nick}</span><div class="boardMetaRight"><span>${formatBoardTime(post.ts)}</span><button class="boardDeleteBtn" data-post-id="${post.id}">삭제</button></div></div><div class="boardMessage"></div>`;
         item.querySelector('.boardMessage').textContent=post.msg;
+        const delBtn=item.querySelector('.boardDeleteBtn');
+        if(delBtn) delBtn.addEventListener('click',()=>deleteBoardMessage(post));
         boardListEl.appendChild(item);
       });
       toast('온라인 게시판 연결을 확인해줘!');
@@ -1318,6 +1325,7 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
     const key=`${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
     try{
       await writeOnlineJson(`${getBoardPostsPath(profile.group)}/${key}`, {nick:nick,msg:msg,ts:Date.now()});
+      await trimBoardPostsOnline(profile.group);
       boardNicknameInput.value=nick;
       boardMessageInput.value='';
       await renderBoard();
@@ -1325,6 +1333,42 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
     }catch(e){
       console.warn(e);
       toast('게시글 등록 실패!');
+    }
+  }
+  async function trimBoardPostsOnline(group){
+    try{
+      const posts=await fetchBoardPostsOnline(group);
+      if(posts.length<=50) return;
+      const oldPosts=posts.slice(50);
+      await Promise.all(oldPosts.map(post=>writeOnlineJson(`${getBoardPostsPath(group)}/${post.id}`, null)));
+    }catch(e){
+      console.warn(e);
+    }
+  }
+  async function deleteBoardMessage(post){
+    if(!post || !post.id) return;
+    const profile=getBoardProfile();
+    let allowed = profile.nickname && profile.nickname===post.nick;
+    if(!allowed){
+      let saved=localStorage.getItem(LS_BOARD_ADMIN_PW)||'';
+      if(!saved){
+        toast('내 글만 바로 삭제할 수 있어!');
+        return;
+      }
+      const input=prompt('관리자 비밀번호 입력');
+      if(input===null) return;
+      if(String(input).trim()!==saved){ toast('비밀번호가 달라!'); return; }
+      allowed=true;
+    }
+    const ok=confirm('이 게시글을 삭제할까?');
+    if(!ok) return;
+    try{
+      await writeOnlineJson(`${getBoardPostsPath(profile.group)}/${post.id}`, null);
+      await renderBoard();
+      toast('게시글 삭제 완료!');
+    }catch(e){
+      console.warn(e);
+      toast('게시글 삭제 실패!');
     }
   }
   async function editBoardNotice(){
