@@ -170,10 +170,9 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
 #start .topbar .sub{padding:12px 14px;border-radius:18px;background:rgba(255,255,255,.05);border:1px solid var(--ui-line)}
 #start .wallet{border-radius:18px;background:rgba(255,255,255,.08);border:1px solid var(--ui-line);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
 #start .grid{padding-top:8px;padding-bottom:8px}
-#start .row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:14px}
+#start .row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-top:14px}
 #start .row button{font-size:15px;font-weight:1000;min-height:50px}
 #btnStart{font-size:18px;background:linear-gradient(180deg,rgba(110,231,255,.28),rgba(110,231,255,.16));border-color:rgba(110,231,255,.38)}
-#btnBoard{background:linear-gradient(180deg,rgba(255,216,140,.22),rgba(255,216,140,.12));border-color:rgba(255,216,140,.30)}
 #btnRanking{background:linear-gradient(180deg,rgba(255,185,230,.22),rgba(255,185,230,.12));border-color:rgba(255,185,230,.30)}
 
 /* HUD / 게임 화면 */
@@ -261,27 +260,6 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   .rankProfile{grid-template-columns:1fr}
   #ranking .row:last-child{grid-template-columns:1fr 1fr}
 }
-
-/* 게시판 */
-#board .card,#noticeBoard .card{display:flex;flex-direction:column;gap:12px;max-width:760px;max-height:min(860px,calc(100vh - 36px));overflow:hidden;padding:20px}
-.boardTopRow{display:flex;gap:10px;flex-wrap:wrap}
-.boardTopRow button{flex:1 1 0;min-height:52px}
-.boardPanel{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);border-radius:18px;padding:14px}
-.boardList{flex:1;min-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-right:4px}
-.boardItem{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.05);border-radius:16px;padding:12px 14px}
-.boardMeta{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:12px;opacity:.82;font-weight:900;margin-bottom:6px}
-.boardText{font-size:14px;font-weight:900;line-height:1.45;word-break:break-word}
-.boardComposer{display:grid;grid-template-columns:120px 1fr auto;gap:10px;align-items:center}
-.boardComposer input,.boardComposer textarea,.noticeEditWrap textarea{width:100%;min-width:0;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;padding:12px 14px;box-sizing:border-box;font:inherit;font-weight:900}
-.boardComposer textarea,.noticeEditWrap textarea{resize:none;min-height:84px}
-.noticePreview{white-space:pre-wrap;line-height:1.5;font-weight:900}
-.noticeEditWrap{display:none;gap:10px}
-.noticeEditWrap.show{display:grid}
-.boardHint{font-size:12px;opacity:.82;font-weight:850}
-@media (max-width:768px){
-  .boardComposer{grid-template-columns:1fr;gap:8px}
-  #board .card,#noticeBoard .card{padding:16px;max-height:calc(100vh - 24px)}
-}
 </style>
 
 </head>
@@ -323,7 +301,7 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
         <div class="row">
           <button class="primary" id="btnStart">시작</button>
           <button id="btnShop">상점</button>
-          <button id="btnBoard">게시판</button>
+          <button id="btnHow">조작법</button>
           <button id="btnRanking">친구 랭킹</button>
         </div>
         <p class="sub" style="margin-top:10px"><b>상점</b>에서 아이템을 사두고, <b>시작 후 팝업</b>에서 이번 판에 쓸지 고를 수 있어!</p>
@@ -344,7 +322,6 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
         <div class="shopSectionTabs">
           <button id="btnShopTabItems" class="shopTabBtn active">아이템 상점</button>
           <button id="btnShopTabChars" class="shopTabBtn">캐릭터 상점</button>
-          <button id="btnShopTabUpgrades" class="shopTabBtn">업그레이드 상점</button>
         </div>
         <div id="shopSectionHint" class="shopSectionHint">보호막, 엘리베이터, 코인 2배를 구매할 수 있어.</div>
         <div class="shopSecretRow" style="display:none"></div>
@@ -355,46 +332,16 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
       </div>
     </div>
 
-    <div id="board" class="overlay" style="display:none">
+    <div id="how" class="overlay" style="display:none">
       <div class="card">
-        <div class="title">게시판</div>
-        <div class="sub" style="margin:0">친구들이 한 줄씩 남길 수 있어. 공지사항은 <b>관리자만</b> 수정할 수 있어.</div>
-        <div class="boardTopRow">
-          <button class="primary" id="btnNoticeOpen">공지사항</button>
-          <button id="btnBoardAdmin">관리자 로그인</button>
-          <button id="btnBoardBack">뒤로</button>
-        </div>
-        <div class="boardPanel">
-          <div style="font-weight:1000;font-size:16px;margin-bottom:8px">최근 글</div>
-          <div class="boardList" id="boardList"></div>
-        </div>
-        <div class="boardPanel">
-          <div style="font-weight:1000;font-size:16px;margin-bottom:8px">글쓰기</div>
-          <div class="boardComposer">
-            <input id="boardNickname" maxlength="12" placeholder="닉네임" />
-            <textarea id="boardMessage" maxlength="80" placeholder="한 줄 메시지를 남겨줘"></textarea>
-            <button class="primary" id="btnBoardPost">등록</button>
-          </div>
-          <div class="boardHint" style="margin-top:8px">이 기기에 저장되는 한줄 게시판이야.</div>
-        </div>
-      </div>
-    </div>
-
-    <div id="noticeBoard" class="overlay" style="display:none">
-      <div class="card">
-        <div class="title">공지사항</div>
-        <div class="boardPanel">
-          <div class="noticePreview" id="noticeText"></div>
-        </div>
-        <div class="noticeEditWrap" id="noticeEditWrap">
-          <textarea id="noticeInput" maxlength="500" placeholder="공지사항을 입력해줘"></textarea>
-          <div class="row">
-            <button class="primary" id="btnNoticeSave">공지 저장</button>
-          </div>
-        </div>
-        <div class="row">
-          <button class="primary" id="btnNoticeBack">뒤로</button>
-        </div>
+        <div class="title">조작법</div>
+        <p class="sub">
+          - <b>←</b> : 왼쪽 한 칸<br/>
+          - <b>→</b> : 오른쪽 한 칸<br/>
+          - <b>모바일 탭</b> : 방향 전환 + 한 칸<br/>
+          - 코인은 지갑에 누적되어 상점에 사용!
+        </p>
+        <div class="row"><button class="primary" id="btnBack">뒤로</button></div>
       </div>
     </div>
 
@@ -545,8 +492,7 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   const toastEl=document.getElementById('toast');
 
   const startUI=document.getElementById('start');
-  const boardUI=document.getElementById('board');
-  const noticeBoardUI=document.getElementById('noticeBoard');
+  const howUI=document.getElementById('how');
   const itemPromptUI=document.getElementById('itemPrompt');
   const overUI=document.getElementById('over');
   const shopUI=document.getElementById('shop');
@@ -558,14 +504,9 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   const btnStart=document.getElementById('btnStart');
   const btnElevator200=document.getElementById('btnElevator200');
   const btnElevator400=document.getElementById('btnElevator400');
-  const btnBoard=document.getElementById('btnBoard');
+  const btnHow=document.getElementById('btnHow');
   const btnRanking=document.getElementById('btnRanking');
-  const btnNoticeOpen=document.getElementById('btnNoticeOpen');
-  const btnBoardAdmin=document.getElementById('btnBoardAdmin');
-  const btnBoardBack=document.getElementById('btnBoardBack');
-  const btnBoardPost=document.getElementById('btnBoardPost');
-  const btnNoticeBack=document.getElementById('btnNoticeBack');
-  const btnNoticeSave=document.getElementById('btnNoticeSave');
+  const btnBack=document.getElementById('btnBack');
   const btnItemCancel=document.getElementById('btnItemCancel');
   const btnItemConfirm=document.getElementById('btnItemConfirm');
   const btnRetry=document.getElementById('btnRetry');
@@ -611,19 +552,12 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   const btnOverShop=document.getElementById('btnOverShop');
   const btnShopTabItems=document.getElementById('btnShopTabItems');
   const btnShopTabChars=document.getElementById('btnShopTabChars');
-  const btnShopTabUpgrades=document.getElementById('btnShopTabUpgrades');
   const shopSectionHint=document.getElementById('shopSectionHint');
   const shopSubText=document.getElementById('shopSubText');
 
   const charGrid=document.getElementById('charGrid');
   const startItemsPanel=document.getElementById('itemPromptPanel');
   const shopList=document.getElementById('shopList');
-  const boardList=document.getElementById('boardList');
-  const boardNicknameInput=document.getElementById('boardNickname');
-  const boardMessageInput=document.getElementById('boardMessage');
-  const noticeTextEl=document.getElementById('noticeText');
-  const noticeInput=document.getElementById('noticeInput');
-  const noticeEditWrap=document.getElementById('noticeEditWrap');
 
   const WORLD={w:()=>canvas.getBoundingClientRect().width,h:()=>canvas.getBoundingClientRect().height};
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -719,9 +653,6 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   }
   function startBGM(){
     ensureAudio();
-    if(audio.ctx && audio.ctx.state==='suspended'){
-      audio.ctx.resume().catch(()=>{});
-    }
     if(audio.started) return;
     audio.started=true;
     const tempo=144;
@@ -820,7 +751,13 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
     make(1046.5,0.0); make(1318.5,0.04);
   }
 
-  function userGesture(){}
+  function userGesture(){
+    startBGM();
+    box.removeEventListener('pointerdown',userGesture);
+    window.removeEventListener('keydown',userGesture);
+  }
+  box.addEventListener('pointerdown',userGesture,{passive:true});
+  window.addEventListener('keydown',userGesture,{passive:true});
 
   btnSound.addEventListener('click',()=>{
     setMuted(!audio.muted);
@@ -886,27 +823,14 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   let ownedThemes=(()=>{
     try{
       const raw=JSON.parse(localStorage.getItem(LS_THEME_OWNED)||'{}')||{};
-      return {
-        basic:true,
-        day_sky:!!raw.day_sky,
-        night_sky:!!raw.night_sky,
-        forest:!!raw.forest,
-        space:!!raw.space,
-        winter:!!raw.winter,
-        desert:!!raw.desert
-      };
+      return {basic:true, night:!!raw.night};
     }catch(e){
-      return {basic:true,day_sky:false,night_sky:false,forest:false,space:false,winter:false,desert:false};
+      return {basic:true, night:false};
     }
   })();
   let selectedTheme=(localStorage.getItem(LS_THEME_SELECTED)||'basic');
   if(!ownedThemes[selectedTheme]) selectedTheme='basic';
   let shopSection='items';
-  let coinUpgradeLevel=Math.max(0,Math.min(5,Number(localStorage.getItem(LS_COIN_UPGRADE)||0)));
-  const COIN_UPGRADE_PRICES=[200,400,700,1000,1500];
-  const COIN_UPGRADE_CHANCES=[0,0.20,0.40,0.60,0.80,1.00];
-  const BIG_COIN_CHANCE=0.12;
-  const BIG_COIN_REWARD=5;
   let selectedShieldUse=false;
   let selectedElevatorUse=0;
   let pendingShieldUse=false;
@@ -947,13 +871,6 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   function setCoin2xTickets(v){
     coin2xTickets=Math.max(0,Math.floor(v));
     localStorage.setItem(LS_COIN2X,String(coin2xTickets));
-  }
-  function setCoinUpgradeLevel(v){
-    coinUpgradeLevel=Math.max(0,Math.min(5,Math.floor(v)));
-    localStorage.setItem(LS_COIN_UPGRADE,String(coinUpgradeLevel));
-  }
-  function getCoinUpgradeChance(level=coinUpgradeLevel){
-    return COIN_UPGRADE_CHANCES[Math.max(0,Math.min(5,level))] || 0;
   }
   function saveOwnedThemes(){
     localStorage.setItem(LS_THEME_OWNED, JSON.stringify(ownedThemes));
@@ -1586,20 +1503,15 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
 
   function renderShop(){
     shopList.innerHTML='';
-    shopList.className = 'shopList ' + (shopSection==='items' ? 'shopListTriple' : (shopSection==='upgrades' ? 'shopListSingle' : 'shopListChars'));
+    shopList.className = 'shopList ' + (shopSection==='items' ? 'shopListTriple' : 'shopListChars');
     btnShopTabItems.classList.toggle('active', shopSection==='items');
     btnShopTabChars.classList.toggle('active', shopSection==='chars');
-    if(btnShopTabUpgrades) btnShopTabUpgrades.classList.toggle('active', shopSection==='upgrades');
     shopSectionHint.textContent = shopSection==='items'
-      ? '보호막, 엘리베이터, 코인 2배와 배경을 구매할 수 있어.'
-      : (shopSection==='upgrades'
-          ? '영구 업그레이드로 코인 획득을 강화할 수 있어.'
-          : '새 캐릭터를 구매하고 바로 선택할 수 있어.');
+      ? '보호막, 엘리베이터, 코인 2배를 구매할 수 있어.'
+      : '새 캐릭터를 구매하고 바로 선택할 수 있어.';
     shopSubText.innerHTML = shopSection==='items'
-      ? '코인으로 필요한 <b>아이템</b>과 <b>배경</b>을 사두자!'
-      : (shopSection==='upgrades'
-          ? '코인으로 <b>영구 업그레이드</b>를 구매하자!'
-          : '코인으로 새로운 <b>캐릭터</b>를 구매해보자!');
+      ? '코인으로 필요한 <b>아이템</b>을 사두고 시작 전에 골라보자!'
+      : '코인으로 새로운 <b>캐릭터</b>를 구매해보자!';
 
     if(shopSection==='items'){
       const shieldRow=document.createElement('div');
@@ -1630,52 +1542,23 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
       coin2xRow.querySelector('button[data-buy-coin2x]').addEventListener('click',buyCoin2xTicket);
       shopList.appendChild(coin2xRow);
 
-      const themeDefs=[
-        {id:'basic', icon:'🌤️', name:'기본 배경', desc:'무료 기본 배경', price:0},
-        {id:'day_sky', icon:'☀️', name:'낮하늘 배경', desc:'맑고 밝은 파란 하늘', price:300},
-        {id:'night_sky', icon:'🌙', name:'밤하늘 배경', desc:'달과 별이 반짝이는 밤하늘', price:300},
-        {id:'forest', icon:'🌲', name:'숲 배경', desc:'푸른 숲과 자연 풍경', price:300},
-        {id:'space', icon:'🌌', name:'우주 배경', desc:'신비로운 별빛 우주', price:300},
-        {id:'winter', icon:'❄️', name:'겨울 배경', desc:'눈 내리는 겨울 풍경', price:300},
-        {id:'desert', icon:'🏜️', name:'사막 배경', desc:'따뜻한 모래 사막 풍경', price:300}
-      ];
+      const basicTheme=document.createElement('div');
+      basicTheme.className='shopItem';
+      basicTheme.innerHTML=itemCardHtml('🌤️','기본 배경',`${selectedTheme==='basic' ? '현재 사용 중' : '무료 기본 배경'}`,0,`<button data-apply-theme="basic" class="primary" style="padding:10px 12px;border-radius:14px;width:100%">${selectedTheme==='basic'?'사용중':'적용'}</button>`);
+      basicTheme.querySelector('button[data-apply-theme="basic"]').addEventListener('click',()=>applyTheme('basic'));
+      shopList.appendChild(basicTheme);
 
-      themeDefs.forEach(theme=>{
-        const owned=!!ownedThemes[theme.id];
-        const row=document.createElement('div');
-        row.className='shopItem';
-        if(theme.id==='basic'){
-          row.innerHTML=itemCardHtml(theme.icon,theme.name,selectedTheme==='basic' ? '현재 사용 중' : theme.desc,theme.price,`<button data-apply-theme="${theme.id}" class="primary" style="padding:10px 12px;border-radius:14px;width:100%">${selectedTheme==='basic'?'사용중':'적용'}</button>`);
-          row.querySelector(`[data-apply-theme="${theme.id}"]`).addEventListener('click',()=>applyTheme(theme.id));
-        }else if(!owned){
-          row.innerHTML=itemCardHtml(theme.icon,theme.name,theme.desc,theme.price,`<button data-buy-theme="${theme.id}" class="primary" style="padding:10px 12px;border-radius:14px;width:100%" ${wallet<300?'disabled':''}>${wallet>=300?'구매':'코인 부족'}</button>`);
-          row.querySelector(`[data-buy-theme="${theme.id}"]`).addEventListener('click',()=>buyTheme(theme.id));
-        }else{
-          row.innerHTML=itemCardHtml(theme.icon,theme.name,selectedTheme===theme.id ? '현재 사용 중' : `구매 완료 · ${theme.desc}`,theme.price,`<button data-apply-theme="${theme.id}" class="primary" style="padding:10px 12px;border-radius:14px;width:100%">${selectedTheme===theme.id?'사용중':'적용'}</button>`);
-          row.querySelector(`[data-apply-theme="${theme.id}"]`).addEventListener('click',()=>applyTheme(theme.id));
-        }
-        shopList.appendChild(row);
-      });
-      return;
-    }
-
-    if(shopSection==='upgrades'){
-      const nextLevel=coinUpgradeLevel+1;
-      const maxed=coinUpgradeLevel>=5;
-      const currentChance=Math.round(getCoinUpgradeChance(coinUpgradeLevel)*100);
-      const nextChance=Math.round(getCoinUpgradeChance(Math.min(5,nextLevel))*100);
-      const price=maxed?0:COIN_UPGRADE_PRICES[coinUpgradeLevel];
-      const row=document.createElement('div');
-      row.className='shopItem';
-      row.innerHTML=itemCardHtml('🪙','코인 업그레이드',
-        maxed
-          ? `현재 Lv.${coinUpgradeLevel}<br>코인 먹을 때 항상 +1 추가`
-          : `현재 Lv.${coinUpgradeLevel} · 추가 코인 확률 ${currentChance}%<br>다음 Lv.${nextLevel} · ${nextChance}% 확률로 +1`,
-        price,
-        `<button data-buy-upgrade="coin" class="primary" style="padding:10px 12px;border-radius:14px;width:100%" ${maxed||wallet<price?'disabled':''}>${maxed?'최대 레벨':(wallet>=price?`Lv.${nextLevel} 구매`:'코인 부족')}</button>`
-      );
-      row.querySelector('button[data-buy-upgrade="coin"]').addEventListener('click',buyCoinUpgrade);
-      shopList.appendChild(row);
+      const nightOwned=!!ownedThemes.night;
+      const nightTheme=document.createElement('div');
+      nightTheme.className='shopItem';
+      if(!nightOwned){
+        nightTheme.innerHTML=itemCardHtml('🌙','밤하늘 배경',`달과 별이 보이는 밤하늘`,300,`<button data-buy-theme="night" class="primary" style="padding:10px 12px;border-radius:14px;width:100%" ${wallet<300?'disabled':''}>${wallet>=300?'구매':'코인 부족'}</button>`);
+        nightTheme.querySelector('button[data-buy-theme="night"]').addEventListener('click',()=>buyTheme('night'));
+      }else{
+        nightTheme.innerHTML=itemCardHtml('🌙','밤하늘 배경',`${selectedTheme==='night' ? '현재 사용 중' : '구매 완료 · 달과 별 배경'}`,300,`<button data-apply-theme="night" class="primary" style="padding:10px 12px;border-radius:14px;width:100%">${selectedTheme==='night'?'사용중':'적용'}</button>`);
+        nightTheme.querySelector('button[data-apply-theme="night"]').addEventListener('click',()=>applyTheme('night'));
+      }
+      shopList.appendChild(nightTheme);
       return;
     }
 
@@ -1812,31 +1695,15 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
     renderStartItems();
   }
 
-  function buyCoinUpgrade(){
-    if(coinUpgradeLevel>=5){ toast('코인 업그레이드 최대 레벨!'); return; }
-    const price=COIN_UPGRADE_PRICES[coinUpgradeLevel];
-    if(wallet<price){ toast('코인이 부족해! 🪙'); return; }
-    setWallet(wallet-price);
-    setCoinUpgradeLevel(coinUpgradeLevel+1);
-    renderShop();
-    toast(`코인 업그레이드 Lv.${coinUpgradeLevel} 완료!`);
-  }
-
-  function getThemeLabel(id){
-    const map={basic:'기본 배경',day_sky:'낮하늘 배경',night_sky:'밤하늘 배경',forest:'숲 배경',space:'우주 배경',winter:'겨울 배경',desert:'사막 배경'};
-    return map[id] || '배경';
-  }
-
   function buyTheme(id){
-    if(!ownedThemes.hasOwnProperty(id)) return;
-    if(id==='basic'){ applyTheme('basic'); return; }
+    if(id!=='night') return;
     if(ownedThemes[id]){ applyTheme(id); return; }
     if(wallet<300){ toast('코인이 부족해! 🪙'); return; }
     setWallet(wallet-300);
     unlockTheme(id);
     setSelectedTheme(id);
     renderShop();
-    toast(`${getThemeLabel(id)} 구매 완료!`);
+    toast('밤하늘 배경 구매 완료!');
   }
 
   function applyTheme(id){
@@ -1854,117 +1721,6 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   }
 
 
-
-  const LS_BOARD_POSTS='tower_board_posts_v1';
-  const LS_BOARD_NOTICE='tower_board_notice_v1';
-  const LS_BOARD_ADMIN_PIN='tower_board_admin_pin_v1';
-  let boardAdminAuthed=false;
-
-  function loadBoardPosts(){
-    try{
-      const raw=JSON.parse(localStorage.getItem(LS_BOARD_POSTS)||'[]')||[];
-      return Array.isArray(raw)?raw:[];
-    }catch(e){ return []; }
-  }
-  function saveBoardPosts(posts){
-    localStorage.setItem(LS_BOARD_POSTS, JSON.stringify(posts.slice(0,30)));
-  }
-  function loadNotice(){
-    return localStorage.getItem(LS_BOARD_NOTICE)||'공지사항이 아직 없어.\n관리자 로그인 후 첫 공지를 작성해줘!';
-  }
-  function saveNotice(v){
-    localStorage.setItem(LS_BOARD_NOTICE, String(v||'').trim()||'공지사항이 아직 없어.');
-  }
-  function formatBoardTime(ts){
-    const d=new Date(Number(ts)||Date.now());
-    const yy=String(d.getFullYear()).slice(2);
-    const mm=String(d.getMonth()+1).padStart(2,'0');
-    const dd=String(d.getDate()).padStart(2,'0');
-    const hh=String(d.getHours()).padStart(2,'0');
-    const mi=String(d.getMinutes()).padStart(2,'0');
-    return `${yy}.${mm}.${dd} ${hh}:${mi}`;
-  }
-  function refreshBoardAdminButton(){
-    if(btnBoardAdmin) btnBoardAdmin.textContent=boardAdminAuthed?'관리자 로그아웃':'관리자 로그인';
-    if(noticeEditWrap) noticeEditWrap.classList.toggle('show', boardAdminAuthed);
-  }
-  function renderBoard(){
-    const profile=loadRankProfile();
-    if(boardNicknameInput && document.activeElement!==boardNicknameInput){
-      boardNicknameInput.value=boardNicknameInput.value || profile.nickname || '';
-    }
-    const posts=loadBoardPosts();
-    boardList.innerHTML='';
-    if(!posts.length){
-      boardList.innerHTML='<div class="boardItem"><div class="boardText">아직 글이 없어. 첫 글을 남겨줘!</div></div>';
-      return;
-    }
-    posts.slice().reverse().forEach(post=>{
-      const row=document.createElement('div');
-      row.className='boardItem';
-      row.innerHTML=`<div class="boardMeta"><b>${post.nickname||'익명'}</b><span>${formatBoardTime(post.ts)}</span></div><div class="boardText"></div>`;
-      row.querySelector('.boardText').textContent=post.text||'';
-      boardList.appendChild(row);
-    });
-  }
-  function renderNotice(){
-    const txt=loadNotice();
-    noticeTextEl.textContent=txt;
-    if(noticeInput && document.activeElement!==noticeInput) noticeInput.value=txt;
-    refreshBoardAdminButton();
-  }
-  function openBoard(){
-    stopBGM();
-    renderBoard();
-    setOverlay(boardUI);
-    focus();
-  }
-  function openNoticeBoard(){
-    renderNotice();
-    setOverlay(noticeBoardUI);
-    focus();
-  }
-  function postBoardMessage(){
-    const nickname=(boardNicknameInput.value||loadRankProfile().nickname||'익명').replace(/\s+/g,' ').trim().slice(0,12)||'익명';
-    const text=(boardMessageInput.value||'').replace(/\s+/g,' ').trim().slice(0,80);
-    if(!text){ toast('글 내용을 입력해줘!'); return; }
-    const posts=loadBoardPosts();
-    posts.push({nickname,text,ts:Date.now()});
-    saveBoardPosts(posts);
-    boardMessageInput.value='';
-    boardNicknameInput.value=nickname;
-    toast('게시글 등록 완료!');
-    renderBoard();
-  }
-  function toggleBoardAdmin(){
-    if(boardAdminAuthed){
-      boardAdminAuthed=false;
-      refreshBoardAdminButton();
-      toast('관리자 로그아웃');
-      return;
-    }
-    const savedPin=localStorage.getItem(LS_BOARD_ADMIN_PIN)||'';
-    if(!savedPin){
-      const first=prompt('처음 관리자 비밀번호를 정해줘');
-      if(first===null) return;
-      const pin=String(first).trim();
-      if(pin.length<2){ toast('비밀번호를 다시 정해줘'); return; }
-      localStorage.setItem(LS_BOARD_ADMIN_PIN,pin);
-      boardAdminAuthed=true;
-      refreshBoardAdminButton();
-      toast('관리자 등록 완료!');
-      return;
-    }
-    const input=prompt('관리자 비밀번호를 입력해줘');
-    if(input===null) return;
-    if(String(input).trim()===savedPin){
-      boardAdminAuthed=true;
-      refreshBoardAdminButton();
-      toast('관리자 로그인 성공!');
-    }else{
-      toast('비밀번호가 달라!');
-    }
-  }
   // ===== Game =====
   let running=false, paused=false, gameOver=false;
   let score=0, runCoins=0, combo=1, comboStreak=0;
@@ -2070,7 +1826,7 @@ function drawParticles(){
   }
 
   function setOverlay(which){
-    startUI.style.display='none'; boardUI.style.display='none'; noticeBoardUI.style.display='none'; itemPromptUI.style.display='none'; overUI.style.display='none'; shopUI.style.display='none'; rankingUI.style.display='none'; bonusRewardUI.style.display='none';
+    startUI.style.display='none'; howUI.style.display='none'; itemPromptUI.style.display='none'; overUI.style.display='none'; shopUI.style.display='none'; rankingUI.style.display='none'; bonusRewardUI.style.display='none';
     if(which) which.style.display='flex';
     const overlayOpen = !!which;
     if(mobileControls) mobileControls.style.display = overlayOpen ? 'none' : 'flex';
@@ -2079,10 +1835,6 @@ function drawParticles(){
 
   function stepExists(gx,gy){ return steps.some(s=>s.gx===gx&&s.gy===gy); }
   function getStep(gx,gy){ return steps.find(s=>s.gx===gx&&s.gy===gy)||null; }
-  function makeCoinFlag(chance){
-    const hasCoin=Math.random()<chance;
-    return {coin:hasCoin, bigCoin:hasCoin && Math.random()<BIG_COIN_CHANCE};
-  }
 
   function ensurePathAhead(){
     let lastStep=steps[steps.length-1];
@@ -2090,8 +1842,7 @@ function drawParticles(){
       let gx=lastStep.gx, gy=lastStep.gy;
       if(Math.random()<0.5) gx++; else gy++;
       const depth=gx+gy;
-      const coinInfo=makeCoinFlag(0.20+Math.min(0.24,depth/600));
-      steps.push({gx,gy,skin:randInt(0,3), coin:coinInfo.coin, bigCoin:coinInfo.bigCoin});
+      steps.push({gx,gy,skin:randInt(0,3), coin:(Math.random()<(0.20+Math.min(0.24,depth/600)))});
       lastStep=steps[steps.length-1];
     }
     const minKeep=(player.gx+player.gy)-12;
@@ -2107,13 +1858,12 @@ function drawParticles(){
       setTimeout(()=>toast('보호막 장착!'), 120);
     }
     elevatorStartFloor=startFloor;
-    steps.length=0; steps.push({gx:0,gy:0,skin:randInt(0,3),coin:false,bigCoin:false});
+    steps.length=0; steps.push({gx:0,gy:0,skin:randInt(0,3),coin:false});
     let gx=0,gy=0;
     for(let i=0;i<46;i++){
       if(Math.random()<0.5) gx++; else gy++;
       const depth=gx+gy;
-      const coinInfo=(depth>2) ? makeCoinFlag(0.24) : {coin:false,bigCoin:false};
-      steps.push({gx,gy,skin:randInt(0,3),coin:coinInfo.coin,bigCoin:coinInfo.bigCoin});
+      steps.push({gx,gy,skin:randInt(0,3),coin:(Math.random()<0.24 && depth>2)});
     }
     player.gx=0; player.gy=0; player.dir='R';
     updateCamera(); stepPulse=0; parts.length=0;
@@ -2242,20 +1992,14 @@ function drawParticles(){
     const p=screenFromGrid(player.gx,player.gy);
 
     if(st && st.coin){
-      const isBig=!!st.bigCoin;
-      let reward=(isBig?BIG_COIN_REWARD:1) * (activeCoin2x ? 2 : 1);
-      if(Math.random()<getCoinUpgradeChance()) reward += 1;
-      runCoins += reward;
-      st.coin=false;
-      st.bigCoin=false;
+      st.coin=false; runCoins += activeCoin2x ? 2 : 1;
       if(getChar().id==='subin'){
-        spawnHeartBurst(p.x, p.y - TILE*0.18, isBig ? 'rgba(255,220,120,0.98)' : 'rgba(255,160,210,0.95)', isBig ? 18 : 14);
+        spawnHeartBurst(p.x, p.y - TILE*0.18, 'rgba(255,160,210,0.95)', 14);
       }else if(getChar().id==='seongbin'){
-        spawnSparkle(p.x, p.y - TILE*0.10, isBig ? 26 : 18);
+        spawnSparkle(p.x, p.y - TILE*0.10, 18);
       }else{
-        spawnSparkle(p.x, p.y - TILE*0.10, isBig ? 26 : 18);
+        spawnSparkle(p.x, p.y - TILE*0.10, 18);
       }
-      if(isBig) toast(`대형 코인 +${reward}`);
       sfxCoin();
     }else{
       if(getChar().id==='subin'){
@@ -2372,37 +2116,20 @@ function drawParticles(){
     shine.addColorStop(1,`rgba(255,255,255,0)`);
     ctx.fillStyle=shine; roundRect(ctx,x+3,y+3,TILE-6,TILE*0.48,16); ctx.fill();
   }
-  function drawCoin(cx,cy,alpha,isBig=false){
+  function drawCoin(cx,cy,alpha){
     const t=performance.now()/240;
     const bob=Math.sin(t)*4.5;
     const spin=(t*3.0)%(Math.PI*2);
-    const baseSize=isBig ? 52 : 34;
-    const wobble=isBig ? 8.5 : 5.5;
-    const w=baseSize + Math.sin(spin)*wobble;
-    const h=baseSize;
+    const w=34 + Math.sin(spin)*5.5;
+    const h=34;
     if(!window.__coinImg){
       window.__coinImg=new Image();
       window.__coinImg.src='assets/img_21.png';
     }
     ctx.save();
     ctx.globalAlpha=alpha;
-    ctx.translate(cx, cy-(isBig?34:26)+bob);
-    if(isBig){
-      ctx.shadowColor='rgba(255,215,90,0.95)';
-      ctx.shadowBlur=18;
-      ctx.strokeStyle='rgba(255,245,180,0.98)';
-      ctx.lineWidth=4;
-      ctx.beginPath();
-      ctx.arc(0,0,Math.max(w,h)*0.38,0,Math.PI*2);
-      ctx.stroke();
-    }
+    ctx.translate(cx, cy-26+bob);
     ctx.drawImage(window.__coinImg,-w/2,-h/2,w,h);
-    if(isBig){
-      ctx.fillStyle='rgba(255,245,180,0.96)';
-      ctx.font='1000 14px system-ui';
-      ctx.textAlign='center';
-      ctx.fillText('5',0,5);
-    }
     ctx.restore();
   }
 
@@ -2748,33 +2475,35 @@ function drawParticles(){
     const w=WORLD.w(), h=WORLD.h();
     ctx.clearRect(0,0,w,h);
     const tt=(player.gx+player.gy);
-    if(!window.__themeImagesLoaded){
-      window.__themeImagesLoaded=true;
-      window.__themeImages={
-        day_sky:new Image(),
-        night_sky:new Image(),
-        forest:new Image(),
-        space:new Image(),
-        winter:new Image(),
-        desert:new Image()
-      };
-      window.__themeImages.day_sky.src='assets/day_sky.png';
-      window.__themeImages.night_sky.src='assets/night_sky.png';
-      window.__themeImages.forest.src='assets/forest.png';
-      window.__themeImages.space.src='assets/space.png';
-      window.__themeImages.winter.src='assets/winter.png';
-      window.__themeImages.desert.src='assets/desert.png';
-    }
-    const themeImgs=window.__themeImages||{};
-    const themeImg=themeImgs[selectedTheme];
-    if(selectedTheme!=='basic' && themeImg && themeImg.complete){
-      const imgW=themeImg.naturalWidth||w, imgH=themeImg.naturalHeight||h;
-      const scale=Math.max(w/imgW, h/imgH);
-      const dw=imgW*scale, dh=imgH*scale;
-      const dx=(w-dw)/2, dy=Math.min(0,(h-dh)*0.30);
-      ctx.drawImage(themeImg,dx,dy,dw,dh);
-      ctx.fillStyle='rgba(0,0,0,0.10)';
+    if(selectedTheme==='night'){
+      const sky=ctx.createLinearGradient(0,0,0,h);
+      sky.addColorStop(0,'#0f1b56');
+      sky.addColorStop(0.55,'#233d8f');
+      sky.addColorStop(1,'#2f5fbe');
+      ctx.fillStyle=sky;
       ctx.fillRect(0,0,w,h);
+      drawGlow(w*0.22, h*0.18, 200, 'rgba(255,239,160,0.10)');
+      drawGlow(w*0.74, h*0.30, 260, 'rgba(148,111,255,0.12)');
+      ctx.fillStyle='rgba(255,246,176,0.96)';
+      ctx.beginPath();
+      ctx.arc(w*0.18, h*0.17, Math.min(w,h)*0.058, 0, Math.PI*2);
+      ctx.fill();
+      ctx.globalCompositeOperation='destination-out';
+      ctx.beginPath();
+      ctx.arc(w*0.205, h*0.157, Math.min(w,h)*0.052, 0, Math.PI*2);
+      ctx.fill();
+      ctx.globalCompositeOperation='source-over';
+      ctx.fillStyle='rgba(255,255,255,0.82)';
+      for(let i=0;i<72;i++){
+        const x=(i*113+tt*7)%w;
+        const y=(i*67+tt*5)%h;
+        const s=(i%7===0)?3:((i%3===0)?2:1.5);
+        ctx.fillRect(x,y,s,s);
+      }
+      ctx.fillStyle='rgba(177,157,255,0.22)';
+      for(const [cx,cy,r] of [[w*0.16,h*0.27,56],[w*0.82,h*0.23,62],[w*0.13,h*0.70,64],[w*0.88,h*0.77,72]]){
+        ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill();
+      }
     }else{
       drawGlow(w*0.28, h*0.20, 240, 'rgba(110,231,255,0.10)');
       drawGlow(w*0.78, h*0.38, 280, 'rgba(170,110,255,0.08)');
@@ -2792,7 +2521,7 @@ function drawParticles(){
       const depth=s.gx+s.gy;
       const alpha=clamp(1-((player.gx+player.gy)-depth)*0.08,0.10,1);
       drawStairTile(p.x,p.y,alpha,s.skin);
-      if(s.coin && alpha>0.25) drawCoin(p.x,p.y - TILE*0.02,alpha,!!s.bigCoin);
+      if(s.coin && alpha>0.25) drawCoin(p.x,p.y - TILE*0.02,alpha);
     }
     const tile=screenFromGrid(player.gx,player.gy);
     ctx.strokeStyle='rgba(255,255,255,0.55)'; ctx.lineWidth=3;
@@ -2803,13 +2532,7 @@ function drawParticles(){
   }
 
   // UI wiring
-  btnBoard.addEventListener('click',()=>openBoard());
-  btnNoticeOpen.addEventListener('click',()=>openNoticeBoard());
-  btnBoardAdmin.addEventListener('click',()=>toggleBoardAdmin());
-  btnBoardBack.addEventListener('click',()=>{ stopBGM(); forceInitialCharacterLayout(); setOverlay(startUI); focus(); });
-  btnBoardPost.addEventListener('click',()=>postBoardMessage());
-  btnNoticeBack.addEventListener('click',()=>{ setOverlay(boardUI); renderBoard(); focus(); });
-  btnNoticeSave.addEventListener('click',()=>{ if(!boardAdminAuthed){ toast('관리자만 공지를 수정할 수 있어!'); return; } saveNotice(noticeInput.value); renderNotice(); toast('공지 저장 완료!'); });
+  btnHow.addEventListener('click',()=>{ setOverlay(howUI); focus(); });
   btnRanking.addEventListener('click',()=>openRanking());
   btnOverRanking.addEventListener('click',()=>openRanking());
   btnRankSaveProfile.addEventListener('click',async ()=>{ saveRankProfile(); await renderRanking(); });
@@ -2830,10 +2553,10 @@ function drawParticles(){
   btnRankTabMonth.addEventListener('click',async ()=>{ rankTab='month'; await renderRanking(); });
   btnRankRefresh.addEventListener('click',()=>renderRanking());
   btnRankClose.addEventListener('click',()=>{ stopBGM(); forceInitialCharacterLayout(); setOverlay(startUI); focus(); });
+  btnBack.addEventListener('click',()=>{ stopBGM(); setOverlay(startUI); focus(); });
   btnShop.addEventListener('click',()=>openShop());
   btnShopTabItems.addEventListener('click',()=>{ registerSecretDir('L'); shopSection='items'; renderShop(); });
   btnShopTabChars.addEventListener('click',()=>{ registerSecretDir('R'); shopSection='chars'; renderShop(); });
-  if(btnShopTabUpgrades) btnShopTabUpgrades.addEventListener('click',()=>{ shopSection='upgrades'; renderShop(); });
   btnShopBack.addEventListener('click',()=>{ stopBGM(); resetSecretSequence(); forceInitialCharacterLayout(); setOverlay(startUI); focus(); });
   if(btnShopBackTop) btnShopBackTop.addEventListener('click',()=>{ stopBGM(); resetSecretSequence(); forceInitialCharacterLayout(); setOverlay(startUI); focus(); });
   if(btnShopReset) btnShopReset.addEventListener('click',()=>{ try{ resetProgress(); }catch(e){ console.warn(e); } });
@@ -2928,10 +2651,6 @@ function drawParticles(){
     if(useCoin2x){
       toast('코인 2배 적용!');
     }
-    ensureAudio();
-    if(audio.ctx && audio.ctx.state==='suspended'){
-      audio.ctx.resume().catch(()=>{});
-    }
     if(!audio.started) startBGM();
     move(dir);
     return true;
@@ -2984,9 +2703,6 @@ function drawParticles(){
 
   // init
   forceInitialCharacterLayout();
-  renderBoard();
-  renderNotice();
-  refreshBoardAdminButton();
   resetRun(0);
   updateElevatorButtons();
   running=false;
