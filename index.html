@@ -805,6 +805,9 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   const LS_ELEV200='tower_elevator_ticket_200_v1';
   const LS_ELEV400='tower_elevator_ticket_400_v1';
   const LS_COIN2X='tower_coin2x_ticket_v1';
+  const LS_COIN_UPGRADE='tower_coin_upgrade_v1';
+  const COIN_UPGRADE_COSTS=[200,400,700,1000,1500];
+  const COIN_UPGRADE_CHANCES=[0.20,0.40,0.60,0.80,1.00];
   const LS_THEME_OWNED='tower_theme_owned_v1';
   const LS_THEME_SELECTED='tower_theme_selected_v1';
   const LS_UNLOCK='tower_unlock_v7_all_relocked';
@@ -823,6 +826,7 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   let elevatorTickets200=Number(localStorage.getItem(LS_ELEV200)||0);
   let elevatorTickets400=Number(localStorage.getItem(LS_ELEV400)||0);
   let coin2xTickets=Number(localStorage.getItem(LS_COIN2X)||0);
+  let coinUpgradeLevel=Math.max(0,Math.min(5,Number(localStorage.getItem(LS_COIN_UPGRADE)||0)));
   let ownedThemes=(()=>{
     try{
       const raw=JSON.parse(localStorage.getItem(LS_THEME_OWNED)||'{}')||{};
@@ -900,6 +904,21 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
     coin2xTickets=Math.max(0,Math.floor(v));
     localStorage.setItem(LS_COIN2X,String(coin2xTickets));
   }
+  function setCoinUpgradeLevel(v){
+    coinUpgradeLevel=Math.max(0,Math.min(5,Math.floor(v)));
+    localStorage.setItem(LS_COIN_UPGRADE,String(coinUpgradeLevel));
+  }
+  function getCoinUpgradeChance(level=coinUpgradeLevel){
+    return COIN_UPGRADE_CHANCES[Math.max(0,Math.min(4,level-1))]||0;
+  }
+  function getCoinUpgradeCost(level=coinUpgradeLevel+1){
+    return COIN_UPGRADE_COSTS[Math.max(0,Math.min(4,level-1))]||0;
+  }
+  function coinUpgradeDesc(level=coinUpgradeLevel){
+    if(level<=0) return '코인을 먹을 때 추가 코인 찬스 없음';
+    if(level>=5) return '코인을 먹을 때 항상 +1코인';
+    return `코인을 먹을 때 ${Math.round(getCoinUpgradeChance(level)*100)}% 확률로 +1코인`;
+  }
   function saveOwnedThemes(){
     localStorage.setItem(LS_THEME_OWNED, JSON.stringify(ownedThemes));
   }
@@ -917,6 +936,7 @@ button.primary{background:linear-gradient(180deg,rgba(110,231,255,.24),rgba(110,
   setElevatorTickets200(elevatorTickets200);
   setElevatorTickets400(elevatorTickets400);
   setCoin2xTickets(coin2xTickets);
+  setCoinUpgradeLevel(coinUpgradeLevel);
   saveOwnedThemes();
   setSelectedTheme(selectedTheme);
 
